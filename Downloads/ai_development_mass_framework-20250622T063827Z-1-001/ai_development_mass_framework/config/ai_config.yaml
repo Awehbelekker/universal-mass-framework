@@ -1,0 +1,32 @@
+# AI Configuration for MASS Framework
+# This file contains AI model settings and preferences
+
+# Default AI Provider (openai, anthropic, ollama)
+default_provider: openai
+
+# Model Selection for Different Tasks
+code_generation_model: gpt-4-turbo-preview
+code_review_model: gpt-4
+documentation_model: gpt-3.5-turbo
+chat_model: gpt-4
+
+# Cost Management
+max_monthly_cost: 100.0
+cost_alert_threshold: 80.0
+
+# Performance Settings
+enable_caching: true
+cache_ttl_hours: 24
+max_retries: 3
+timeout_seconds: 30
+
+# Safety Settings
+content_filter_enabled: true
+max_tokens_per_request: 4000
+rate_limit_per_minute: 60
+
+# Note: API keys should be set as environment variables:
+# - OPENAI_API_KEY=your_openai_key
+# - ANTHROPIC_API_KEY=your_anthropic_key
+# - AZURE_OPENAI_KEY=your_azure_key
+# - AZURE_OPENAI_ENDPOINT=your_azure_endpoint

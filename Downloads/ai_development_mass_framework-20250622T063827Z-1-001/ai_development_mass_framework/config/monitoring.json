@@ -1,0 +1,28 @@
+{
+  "metrics": {
+    "enabled": true,
+    "port": 8001,
+    "path": "/metrics"
+  },
+  "health_checks": {
+    "enabled": true,
+    "interval_seconds": 30,
+    "timeout_seconds": 10
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "structured",
+    "output": [
+      "file",
+      "console"
+    ]
+  },
+  "alerts": {
+    "enabled": true,
+    "thresholds": {
+      "response_time_ms": 2000,
+      "error_rate_percent": 5,
+      "memory_usage_percent": 80
+    }
+  }
+}

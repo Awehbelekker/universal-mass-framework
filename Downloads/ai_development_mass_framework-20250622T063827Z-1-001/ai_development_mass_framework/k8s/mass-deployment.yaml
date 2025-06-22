@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mass-framework
+  labels:
+    app: mass-framework
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mass-framework
+  template:
+    metadata:
+      labels:
+        app: mass-framework
+    spec:
+      containers:
+      - name: mass-app
+        image: mass-framework:latest
+        ports:
+        - containerPort: 8000
+        - containerPort: 80
+        env:
+        - name: MASS_ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: database-url
+        - name: REDIS_URL
+          value: "redis://redis-service:6379"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: openai-api-key
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: anthropic-api-key
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: jwt-secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        - name: app-logs
+          mountPath: /app/logs
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: mass-data-pvc
+      - name: app-logs
+        persistentVolumeClaim:
+          claimName: mass-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mass-framework-service
+spec:
+  selector:
+    app: mass-framework
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: api
+    port: 8000
+    targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mass-framework-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - mass-framework.example.com
+    secretName: mass-framework-tls
+  rules:
+  - host: mass-framework.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mass-framework-service
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: mass-framework-service
+            port:
+              number: 8000

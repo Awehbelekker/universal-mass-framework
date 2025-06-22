@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mass-framework
+  labels:
+    name: mass-framework
+    environment: production
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mass-config
+  namespace: mass-framework
+data:
+  MASS_ENVIRONMENT: "production"
+  REACT_APP_ENVIRONMENT: "production"
+  REACT_APP_API_URL: "https://api.mass-framework.com"
+  JWT_EXPIRY_HOURS: "24"
+  MAX_WORKERS: "4"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mass-secrets
+  namespace: mass-framework
+type: Opaque
+data:
+  # Base64 encoded secrets - replace with actual values
+  JWT_SECRET_KEY: Y2hhbmdlX3RoaXNfaW5fcHJvZHVjdGlvbl9zZWNyZXRfa2V5  # change_this_in_production_secret_key
+  OPENAI_API_KEY: eW91cl9vcGVuYWlfYXBpX2tleQ==  # your_openai_api_key
+  ANTHROPIC_API_KEY: eW91cl9hbnRocm9waWNfYXBpX2tleQ==  # your_anthropic_api_key
+  POSTGRES_PASSWORD: bWFzc19wcm9kdWN0aW9uX3Bhc3N3b3Jk  # mass_production_password

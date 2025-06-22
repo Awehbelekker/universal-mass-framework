@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mass-backend
+  namespace: mass-framework
+  labels:
+    app: mass-backend
+    component: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: mass-backend
+  template:
+    metadata:
+      labels:
+        app: mass-backend
+        component: backend
+    spec:
+      containers:
+      - name: mass-backend
+        image: mass-framework/backend:latest
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MASS_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: mass-config
+              key: MASS_ENVIRONMENT
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: JWT_SECRET_KEY
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: OPENAI_API_KEY
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: ANTHROPIC_API_KEY
+        - name: DATABASE_URL
+          value: "postgresql://mass_user:$(POSTGRES_PASSWORD)@postgres:5432/mass_framework"
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mass-secrets
+              key: POSTGRES_PASSWORD
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: mass-data-pvc
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: mass-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mass-backend
+  namespace: mass-framework
+  labels:
+    app: mass-backend
+    component: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: mass-backend

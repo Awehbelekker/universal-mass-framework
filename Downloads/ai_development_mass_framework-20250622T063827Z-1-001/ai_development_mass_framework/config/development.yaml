@@ -1,0 +1,11 @@
+environment: development
+log_level: DEBUG
+agent_timeout: 120  # seconds
+coordination_timeout: 30  # seconds
+max_concurrent_workflows: 10
+database_url: "postgresql://user:password@db:5432/mass_framework"
+redis_url: "redis://redis:6379"
+api_keys:
+  github: "${GITHUB_API_KEY}"
+  google_trends: "${GOOGLE_TRENDS_API_KEY}"
+  openai: "${OPENAI_API_KEY}"

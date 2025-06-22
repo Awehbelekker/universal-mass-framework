@@ -1,0 +1,354 @@
+import React, { useState, useEffect } from 'react';
+import './MultiAgentCollaboration.css';
+
+interface CollaborationSession {
+  session_id: string;
+  status: string;
+  main_task: string;
+  participating_agents: string[];
+  total_subtasks: number;
+  completed_subtasks: number;
+  created_at: string;
+  completed_at?: string;
+  final_result?: any;
+}
+
+interface SubTask {
+  id: string;
+  description: string;
+  assigned_agent: string;
+  status: string;
+  result?: any;
+}
+
+const MultiAgentCollaboration: React.FC = () => {
+  const [sessions, setSessions] = useState<CollaborationSession[]>([]);
+  const [activeSession, setActiveSession] = useState<CollaborationSession | null>(null);
+  const [taskDescription, setTaskDescription] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [templates, setTemplates] = useState<any>({});
+  const [context, setContext] = useState('{}');
+  const [loading, setLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    fetchSessions();
+    fetchTemplates();
+    const interval = setInterval(fetchSessions, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchSessions = async () => {
+    try {
+      const response = await fetch('/api/collaboration/sessions');
+      const data = await response.json();
+      setSessions(data.sessions || []);
+    } catch (error) {
+      console.error('Failed to fetch sessions:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetch('/api/collaboration/templates');
+      const data = await response.json();
+      setTemplates(data.templates || {});
+    } catch (error) {
+      console.error('Failed to fetch templates:', error);
+    }
+  };
+
+  const fetchSessionDetails = async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/collaboration/status/${sessionId}`);
+      const data = await response.json();
+      setActiveSession(data);
+    } catch (error) {
+      console.error('Failed to fetch session details:', error);
+    }
+  };
+
+  const startCollaboration = async () => {
+    if (!taskDescription.trim()) {
+      alert('Please enter a task description');
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      let parsedContext = {};
+      try {
+        parsedContext = JSON.parse(context);
+      } catch (e) {
+        console.warn('Invalid JSON context, using empty object');
+      }
+
+      const response = await fetch('/api/collaboration/orchestrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          task_description: taskDescription,
+          context: parsedContext,
+          template: selectedTemplate || undefined
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTaskDescription('');
+        setContext('{}');
+        setSelectedTemplate('');
+        fetchSessions();
+        fetchSessionDetails(data.session_id);
+      } else {
+        alert(`Failed to start collaboration: ${data.detail}`);
+      }
+    } catch (error) {
+      console.error('Failed to start collaboration:', error);
+      alert('Failed to start collaboration');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return '#4CAF50';
+      case 'executing': return '#FF9800';
+      case 'planning': return '#2196F3';
+      case 'aggregating': return '#9C27B0';
+      case 'failed': return '#F44336';
+      default: return '#757575';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return '✅';
+      case 'executing': return '⚡';
+      case 'planning': return '📋';
+      case 'aggregating': return '🔄';
+      case 'failed': return '❌';
+      default: return '⏳';
+    }
+  };
+
+  const formatAgentName = (agentId: string) => {
+    return agentId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const renderSessionCard = (session: CollaborationSession) => (
+    <div 
+      key={session.session_id}
+      className={`session-card ${activeSession?.session_id === session.session_id ? 'active' : ''}`}
+      onClick={() => fetchSessionDetails(session.session_id)}
+    >
+      <div className="session-header">
+        <div className="session-status">
+          <span className="status-icon">{getStatusIcon(session.status)}</span>
+          <span 
+            className="status-text"
+            style={{ color: getStatusColor(session.status) }}
+          >
+            {session.status.toUpperCase()}
+          </span>
+        </div>
+        <div className="session-time">
+          {new Date(session.created_at).toLocaleString()}
+        </div>
+      </div>
+      
+      <div className="session-task">
+        <h4>{session.main_task}</h4>
+      </div>
+      
+      <div className="session-progress">
+        <div className="progress-bar">
+          <div 
+            className="progress-fill"
+            style={{ 
+              width: `${session.total_subtasks > 0 ? (session.completed_subtasks / session.total_subtasks) * 100 : 0}%`,
+              backgroundColor: getStatusColor(session.status)
+            }}
+          />
+        </div>
+        <span className="progress-text">
+          {session.completed_subtasks}/{session.total_subtasks} subtasks
+        </span>
+      </div>
+      
+      <div className="session-agents">
+        <span className="agents-label">Agents:</span>
+        {session.participating_agents.map(agent => (
+          <span key={agent} className="agent-badge">
+            {formatAgentName(agent)}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderSessionDetails = () => {
+    if (!activeSession) return null;
+
+    return (
+      <div className="session-details">
+        <div className="details-header">
+          <h3>Session Details</h3>
+          <button 
+            className="refresh-btn"
+            onClick={() => fetchSessionDetails(activeSession.session_id)}
+          >
+            🔄 Refresh
+          </button>
+        </div>
+        
+        <div className="session-info">
+          <div className="info-item">
+            <strong>Status:</strong> 
+            <span style={{ color: getStatusColor(activeSession.status) }}>
+              {getStatusIcon(activeSession.status)} {activeSession.status.toUpperCase()}
+            </span>
+          </div>
+          <div className="info-item">
+            <strong>Task:</strong> {activeSession.main_task}
+          </div>
+          <div className="info-item">
+            <strong>Created:</strong> {new Date(activeSession.created_at).toLocaleString()}
+          </div>
+          {activeSession.completed_at && (
+            <div className="info-item">
+              <strong>Completed:</strong> {new Date(activeSession.completed_at).toLocaleString()}
+            </div>
+          )}
+        </div>
+
+        <div className="agents-section">
+          <h4>Participating Agents</h4>
+          <div className="agents-grid">
+            {activeSession.participating_agents.map(agent => (
+              <div key={agent} className="agent-card">
+                <div className="agent-name">{formatAgentName(agent)}</div>
+                <div className="agent-status">Active</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {activeSession.final_result && (
+          <div className="results-section">
+            <h4>Final Results</h4>
+            <div className="results-content">
+              {typeof activeSession.final_result === 'string' ? (
+                <pre className="result-text">{activeSession.final_result}</pre>
+              ) : (
+                <pre className="result-json">
+                  {JSON.stringify(activeSession.final_result, null, 2)}
+                </pre>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="multi-agent-collaboration">
+      <div className="collaboration-header">
+        <h2>🤖 Multi-Agent Collaboration</h2>
+        <p>Orchestrate complex tasks across multiple AI agents</p>
+      </div>
+
+      <div className="collaboration-content">
+        <div className="left-panel">
+          <div className="create-session">
+            <h3>Start New Collaboration</h3>
+            
+            <div className="form-group">
+              <label>Task Description</label>
+              <textarea
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                placeholder="Describe the task you want multiple agents to collaborate on..."
+                rows={4}
+                disabled={isCreating}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Collaboration Template</label>
+              <select
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+                disabled={isCreating}
+              >
+                <option value="">Custom (no template)</option>
+                {Object.keys(templates).map(template => (
+                  <option key={template} value={template}>
+                    {template.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedTemplate && templates[selectedTemplate] && (
+              <div className="template-info">
+                <h4>Template: {selectedTemplate.replace(/_/g, ' ')}</h4>
+                <p>{templates[selectedTemplate].description}</p>
+                <div className="template-stages">
+                  {templates[selectedTemplate].stages?.map((stage: any, index: number) => (
+                    <div key={index} className="stage-item">
+                      <strong>{stage.name}:</strong> {stage.agents.join(', ')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Context (JSON)</label>
+              <textarea
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                placeholder='{"project_path": "/path/to/project", "language": "python"}'
+                rows={3}
+                disabled={isCreating}
+              />
+            </div>
+
+            <button 
+              className="start-btn"
+              onClick={startCollaboration}
+              disabled={isCreating || !taskDescription.trim()}
+            >
+              {isCreating ? '🔄 Starting...' : '🚀 Start Collaboration'}
+            </button>
+          </div>
+
+          <div className="sessions-list">
+            <h3>Active Sessions</h3>
+            {sessions.length === 0 ? (
+              <div className="no-sessions">
+                <p>No active collaboration sessions</p>
+              </div>
+            ) : (
+              <div className="sessions-grid">
+                {sessions.map(renderSessionCard)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="right-panel">
+          {renderSessionDetails()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MultiAgentCollaboration;

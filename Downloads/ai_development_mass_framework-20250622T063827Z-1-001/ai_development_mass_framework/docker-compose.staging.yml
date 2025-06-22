@@ -1,0 +1,86 @@
+﻿# Universal MASS Framework - Docker Compose for Staging
+version: '3.8'
+
+services:
+  mass-engine:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mass-engine
+    environment:
+      - ENVIRONMENT=staging
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mass-network
+
+  data-processors:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.data-processors
+    environment:
+      - ENVIRONMENT=staging
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mass-network
+
+  intelligence-agents:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.intelligence-agents
+    environment:
+      - ENVIRONMENT=staging
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mass-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: mass_framework_staging
+      POSTGRES_USER: mass_admin
+      POSTGRES_PASSWORD: staging_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mass-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - mass-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/staging.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - mass-engine
+      - data-processors
+      - intelligence-agents
+    networks:
+      - mass-network
+
+volumes:
+  postgres_data:
+
+networks:
+  mass-network:
+    driver: bridge
