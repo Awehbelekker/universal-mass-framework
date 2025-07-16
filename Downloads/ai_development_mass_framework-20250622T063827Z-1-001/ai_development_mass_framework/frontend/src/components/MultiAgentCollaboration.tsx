@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './MultiAgentCollaboration.css';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import SyncIcon from '@mui/icons-material/Sync';
+import ErrorIcon from '@mui/icons-material/Error';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 interface CollaborationSession {
   session_id: string;
@@ -127,12 +133,12 @@ const MultiAgentCollaboration: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return '✅';
-      case 'executing': return '⚡';
-      case 'planning': return '📋';
-      case 'aggregating': return '🔄';
-      case 'failed': return '❌';
-      default: return '⏳';
+      case 'completed': return <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: 16 }} />;
+      case 'executing': return <FlashOnIcon sx={{ color: '#FF9800', fontSize: 16 }} />;
+      case 'planning': return <AssignmentIcon sx={{ color: '#2196F3', fontSize: 16 }} />;
+      case 'aggregating': return <SyncIcon sx={{ color: '#9C27B0', fontSize: 16 }} />;
+      case 'failed': return <ErrorIcon sx={{ color: '#F44336', fontSize: 16 }} />;
+      default: return <HourglassEmptyIcon sx={{ color: '#757575', fontSize: 16 }} />;
     }
   };
 

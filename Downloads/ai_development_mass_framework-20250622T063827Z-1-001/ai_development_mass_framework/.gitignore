@@ -1,3 +1,36 @@
+# PROMETHEUS Trading Platform - Security & Privacy
+# NEVER COMMIT THESE FILES TO PUBLIC REPOS
+
+# Firebase & Secrets
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+firebase-config.js
+firebase-adminsdk-*.json
+
+# Environment variables & API Keys
+.env
+.env.local
+.env.production
+.env.staging
+**/secrets/**
+**/config/private/**
+sensitive-data/
+api-keys.json
+credentials.json
+
+# Security sensitive files
+private_keys/
+certificates/
+*.pem
+*.key
+*.crt
+*.p12
+admin-credentials.json
+master-key.txt
+production-config.js
+secret-config.js
+
 # Python
 __pycache__/
 *.py[cod]

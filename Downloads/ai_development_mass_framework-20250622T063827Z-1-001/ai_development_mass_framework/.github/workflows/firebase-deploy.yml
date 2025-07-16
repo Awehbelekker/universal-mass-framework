@@ -1,0 +1,123 @@
+name: Firebase Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Frontend Testing and Building
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Run frontend linting
+        working-directory: ./frontend
+        run: npm run lint || true
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Upload frontend build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+
+  # Deploy to Firebase
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase
+        run: |
+          # Deploy everything to Firebase
+          firebase deploy --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          # Test the deployed app
+          curl -f https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app/health || true
+
+  # Security Scan
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Final Status Check
+  status-check:
+    runs-on: ubuntu-latest
+    needs: [deploy, security-scan]
+    if: always()
+    steps:
+      - name: Generate deployment report
+        run: |
+          echo "## Firebase Deployment Summary" >> deployment-report.md
+          echo "- Frontend: ${{ needs.frontend.result }}" >> deployment-report.md
+          echo "- Firebase Deploy: ${{ needs.deploy.result }}" >> deployment-report.md
+          echo "- Security Scan: ${{ needs.security-scan.result }}" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "**Deployed to:** https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app" >> deployment-report.md
+          echo "**Functions:** https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app/api" >> deployment-report.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('deployment-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            }); 

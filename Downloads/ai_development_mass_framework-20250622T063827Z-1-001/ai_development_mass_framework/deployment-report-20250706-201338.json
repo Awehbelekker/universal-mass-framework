@@ -1,0 +1,12 @@
+﻿{
+    "environment":  "production",
+    "deploymentSuccessful":  false,
+    "files":  {
+                  "html":  8,
+                  "total":  19,
+                  "js":  10
+              },
+    "timestamp":  "20250706-201338",
+    "buildDirectory":  "C:\\Users\\Judy\\Downloads\\ai_development_mass_framework-20250622T063827Z-1-001\\ai_development_mass_framework/build",
+    "healthChecksPassed":  false
+}

@@ -139,8 +139,9 @@ class InsightGenerator:
     - Strategic recommendations
     """
     
-    def __init__(self):
+    def __init__(self, config=None):
         """Initialize the insight generator"""
+        self.config = config
         self.insight_history = []
         self.insight_templates = self._initialize_insight_templates()
         self.analysis_algorithms = self._initialize_analysis_algorithms()

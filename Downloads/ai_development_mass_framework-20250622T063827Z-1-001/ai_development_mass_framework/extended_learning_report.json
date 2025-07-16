@@ -1,0 +1,2604 @@
+{
+    "demonstration_type": "Extended Learning (200 trades)",
+    "completion_time": "2025-06-23T22:48:13.907073",
+    "total_trades": 200,
+    "final_win_rate": 92.5,
+    "portfolio_return": 3.146558181141016e+19,
+    "evolution_cycles": 4,
+    "initial_metrics": {
+        "accuracy": 0.65,
+        "profit_per_trade": 0.04,
+        "risk_assessment": 0.7,
+        "timing_precision": 0.68,
+        "market_prediction": 0.72,
+        "pattern_recognition": 0.66,
+        "momentum_detection": 0.64,
+        "volatility_analysis": 0.69
+    },
+    "final_metrics": {
+        "accuracy": 0.98,
+        "profit_per_trade": 0.98,
+        "risk_assessment": 0.9712484021762934,
+        "timing_precision": 0.98,
+        "market_prediction": 0.98,
+        "pattern_recognition": 0.98,
+        "momentum_detection": 0.98,
+        "volatility_analysis": 0.9633369402477004
+    },
+    "milestones": [
+        {
+            "trade_count": 10,
+            "timestamp": "2025-06-23T22:48:12.612049",
+            "message": "First 10 trades completed",
+            "metrics": {
+                "accuracy": 0.8297817106511006,
+                "profit_per_trade": 0.24195245587263972,
+                "risk_assessment": 0.7268020349629669,
+                "timing_precision": 0.8590943200770914,
+                "market_prediction": 0.8765963714613616,
+                "pattern_recognition": 0.7999199924274087,
+                "momentum_detection": 0.8150254617562878,
+                "volatility_analysis": 0.7114416279703736
+            },
+            "win_rate": 90.0,
+            "portfolio_value": 426875.0593014717,
+            "total_profit": 1.6009620188410718
+        },
+        {
+            "trade_count": 25,
+            "timestamp": "2025-06-23T22:48:12.739198",
+            "message": "Quarter century of learning",
+            "metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.604637334963138,
+                "risk_assessment": 0.7811140302047296,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.7548912241637837
+            },
+            "win_rate": 88.0,
+            "portfolio_value": 7297370.598552866,
+            "total_profit": 4.789998873206099
+        },
+        {
+            "trade_count": 50,
+            "timestamp": "2025-06-23T22:48:12.865384",
+            "message": "50 trades milestone - serious learning",
+            "metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.8081461410725868,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.7765169128580695
+            },
+            "win_rate": 92.0,
+            "portfolio_value": 1497145535.0803092,
+            "total_profit": 10.758850571137303
+        },
+        {
+            "trade_count": 75,
+            "timestamp": "2025-06-23T22:48:13.061937",
+            "message": "Three-quarter century achieved",
+            "metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.8515821816272532,
+                "timing_precision": 0.94,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.8162953831480287
+            },
+            "win_rate": 93.33333333333333,
+            "portfolio_value": 307710650907.3541,
+            "total_profit": 16.72944590086184
+        },
+        {
+            "trade_count": 100,
+            "timestamp": "2025-06-23T22:48:13.186679",
+            "message": "\ud83c\udfc6 CENTURY MILESTONE - 100 trades!",
+            "metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.9079863333312538,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.8614187045112293
+            },
+            "win_rate": 93.0,
+            "portfolio_value": 47921751233322.86,
+            "total_profit": 22.39721055311953
+        },
+        {
+            "trade_count": 150,
+            "timestamp": "2025-06-23T22:48:13.508389",
+            "message": "\ud83d\ude80 Advanced AI trader status",
+            "metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.9796489074942727,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "win_rate": 91.33333333333333,
+            "portfolio_value": 7.538090467576991e+17,
+            "total_profit": 33.24429567752549
+        },
+        {
+            "trade_count": 200,
+            "timestamp": "2025-06-23T22:48:13.814369",
+            "message": "\ud83d\udc8e Elite AI performance level",
+            "metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "win_rate": 92.5,
+            "portfolio_value": 3.1465581811410166e+22,
+            "total_profit": 45.173963673073295
+        }
+    ],
+    "learning_insights": [
+        {
+            "cycle": 1,
+            "timestamp": "2025-06-23T22:48:12.679879",
+            "trades_analyzed": 20,
+            "success_rate": 0.9,
+            "average_profit": 0.21486966974943725,
+            "average_loss": -0.017145609760162182,
+            "profit_trend": "IMPROVING",
+            "confidence_trend": "INCREASING",
+            "key_learnings": [
+                "High confidence trades (8) showing 87.5% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 15 trades >10% profit",
+                "Excellent risk management: limiting losses to small amounts"
+            ],
+            "performance_trends": {}
+        },
+        {
+            "cycle": 2,
+            "timestamp": "2025-06-23T22:48:12.802525",
+            "trades_analyzed": 20,
+            "success_rate": 0.9,
+            "average_profit": 0.25,
+            "average_loss": -0.037256132416121246,
+            "profit_trend": "STABLE",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 90.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 18 trades >10% profit"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 3,
+            "timestamp": "2025-06-23T22:48:12.941287",
+            "trades_analyzed": 20,
+            "success_rate": 1.0,
+            "average_profit": 0.25,
+            "average_loss": NaN,
+            "profit_trend": "STABLE",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 100.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 20 trades >10% profit"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 4,
+            "timestamp": "2025-06-23T22:48:13.065116",
+            "trades_analyzed": 20,
+            "success_rate": 0.9,
+            "average_profit": 0.25,
+            "average_loss": -0.041381392327920125,
+            "profit_trend": "DECLINING",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 90.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 18 trades >10% profit"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 5,
+            "timestamp": "2025-06-23T22:48:13.188947",
+            "trades_analyzed": 20,
+            "success_rate": 0.95,
+            "average_profit": 0.25,
+            "average_loss": -0.02887723336193545,
+            "profit_trend": "IMPROVING",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 95.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 19 trades >10% profit",
+                "Excellent risk management: limiting losses to small amounts"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 6,
+            "timestamp": "2025-06-23T22:48:13.325207",
+            "trades_analyzed": 20,
+            "success_rate": 0.9,
+            "average_profit": 0.25,
+            "average_loss": -0.026285079436620465,
+            "profit_trend": "STABLE",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 90.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 18 trades >10% profit",
+                "Excellent risk management: limiting losses to small amounts"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 7,
+            "timestamp": "2025-06-23T22:48:13.448067",
+            "trades_analyzed": 20,
+            "success_rate": 0.95,
+            "average_profit": 0.25,
+            "average_loss": -0.02818123443411351,
+            "profit_trend": "DECLINING",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 95.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 19 trades >10% profit",
+                "Excellent risk management: limiting losses to small amounts"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 8,
+            "timestamp": "2025-06-23T22:48:13.569358",
+            "trades_analyzed": 20,
+            "success_rate": 0.8,
+            "average_profit": 0.25,
+            "average_loss": -0.025596579043814315,
+            "profit_trend": "IMPROVING",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "Capturing large profits: 16 trades >10% profit",
+                "Excellent risk management: limiting losses to small amounts"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 9,
+            "timestamp": "2025-06-23T22:48:13.693461",
+            "trades_analyzed": 20,
+            "success_rate": 1.0,
+            "average_profit": 0.25,
+            "average_loss": NaN,
+            "profit_trend": "STABLE",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 100.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 20 trades >10% profit"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        },
+        {
+            "cycle": 10,
+            "timestamp": "2025-06-23T22:48:13.816545",
+            "trades_analyzed": 20,
+            "success_rate": 0.95,
+            "average_profit": 0.25,
+            "average_loss": -0.04010917056361449,
+            "profit_trend": "DECLINING",
+            "confidence_trend": "STABLE",
+            "key_learnings": [
+                "High confidence trades (20) showing 95.0% success rate",
+                "Excellent adaptation to high volatility conditions",
+                "Capturing large profits: 19 trades >10% profit"
+            ],
+            "performance_trends": {
+                "accuracy": "IMPROVING",
+                "profit_per_trade": "IMPROVING",
+                "risk_assessment": "IMPROVING",
+                "timing_precision": "IMPROVING",
+                "market_prediction": "IMPROVING",
+                "pattern_recognition": "IMPROVING",
+                "momentum_detection": "IMPROVING",
+                "volatility_analysis": "IMPROVING"
+            }
+        }
+    ],
+    "learning_history": [
+        {
+            "trade_id": 151,
+            "timestamp": "2025-06-23T22:48:13.566881",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.26591404554994313,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 9.422613084471238e+17,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 152,
+            "timestamp": "2025-06-23T22:48:13.567182",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.4431290757319091,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 1.1778266355589048e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 153,
+            "timestamp": "2025-06-23T22:48:13.567473",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9285849648305814,
+            "market_conditions": {
+                "volatility": 0.31633842902899806,
+                "sentiment": "bullish",
+                "trend": "down",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 1.472283294448631e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 154,
+            "timestamp": "2025-06-23T22:48:13.567683",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.20550974355387755,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 1.8403541180607887e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 155,
+            "timestamp": "2025-06-23T22:48:13.567893",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.26505093858108636,
+                "sentiment": "bullish",
+                "trend": "sideways",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 2.300442647575986e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 156,
+            "timestamp": "2025-06-23T22:48:13.568089",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.2841349844895771,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 2.875553309469982e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 157,
+            "timestamp": "2025-06-23T22:48:13.568278",
+            "success": false,
+            "profit": -0.03022283388858276,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.1719570795375337,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.98,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.9588737736131461
+            },
+            "portfolio_value": 2.788645939460107e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.94,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": -2.041,
+                "timing_precision": -4.082,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": -0.925
+            }
+        },
+        {
+            "trade_id": 158,
+            "timestamp": "2025-06-23T22:48:13.568483",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.17753837911086567,
+                "sentiment": "bearish",
+                "trend": "sideways",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.94,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 3.4858074243251333e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.9597731108463334,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 2.104,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 159,
+            "timestamp": "2025-06-23T22:48:13.568689",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3119238343960906,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.9597731108463334,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 4.3572592804064164e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 2.107,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 160,
+            "timestamp": "2025-06-23T22:48:13.568955",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3050464638407683,
+                "sentiment": "bullish",
+                "trend": "down",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 5.446574100508021e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 161,
+            "timestamp": "2025-06-23T22:48:13.629799",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.18663962035920845,
+                "sentiment": "neutral",
+                "trend": "sideways",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 6.808217625635026e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 162,
+            "timestamp": "2025-06-23T22:48:13.630524",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.44184727871362184,
+                "sentiment": "bullish",
+                "trend": "sideways",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 8.510272032043782e+18,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 163,
+            "timestamp": "2025-06-23T22:48:13.631075",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.919100413729885,
+            "market_conditions": {
+                "volatility": 0.3653976208176939,
+                "sentiment": "neutral",
+                "trend": "sideways",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.0637840040054727e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 164,
+            "timestamp": "2025-06-23T22:48:13.631640",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.2652051291613195,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.3297300050068408e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 165,
+            "timestamp": "2025-06-23T22:48:13.632146",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.27029222185679574,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.662162506258551e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 166,
+            "timestamp": "2025-06-23T22:48:13.632846",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.44543261653256316,
+                "sentiment": "bearish",
+                "trend": "down",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.0777031328231887e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 167,
+            "timestamp": "2025-06-23T22:48:13.633562",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9176163125669194,
+            "market_conditions": {
+                "volatility": 0.26079401823600035,
+                "sentiment": "bearish",
+                "trend": "sideways",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.5971289160289858e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 168,
+            "timestamp": "2025-06-23T22:48:13.634177",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3984030858548703,
+                "sentiment": "bullish",
+                "trend": "up",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 3.2464111450362323e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 169,
+            "timestamp": "2025-06-23T22:48:13.634941",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.25596963702889486,
+                "sentiment": "bearish",
+                "trend": "down",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 4.05801393129529e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 170,
+            "timestamp": "2025-06-23T22:48:13.635766",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3867499180979927,
+                "sentiment": "bearish",
+                "trend": "up",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 5.072517414119113e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 171,
+            "timestamp": "2025-06-23T22:48:13.688762",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.2908147671514819,
+                "sentiment": "bullish",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 6.340646767648891e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 172,
+            "timestamp": "2025-06-23T22:48:13.689276",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3286471143317994,
+                "sentiment": "bullish",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 7.925808459561114e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 173,
+            "timestamp": "2025-06-23T22:48:13.690313",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.43545040994789763,
+                "sentiment": "bullish",
+                "trend": "sideways",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 9.907260574451393e+19,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 174,
+            "timestamp": "2025-06-23T22:48:13.690684",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.20218693327839252,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.2384075718064241e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 175,
+            "timestamp": "2025-06-23T22:48:13.691053",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3439297471430295,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.5480094647580302e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 176,
+            "timestamp": "2025-06-23T22:48:13.691415",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.34522790483658594,
+                "sentiment": "bearish",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.935011830947538e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 177,
+            "timestamp": "2025-06-23T22:48:13.691760",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.38838266029914414,
+                "sentiment": "bearish",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.4187647886844225e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 178,
+            "timestamp": "2025-06-23T22:48:13.692111",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.19474447801328618,
+                "sentiment": "bearish",
+                "trend": "sideways",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 3.023455985855528e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 179,
+            "timestamp": "2025-06-23T22:48:13.692489",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.4318083668277305,
+                "sentiment": "neutral",
+                "trend": "sideways",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 3.77931998231941e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 180,
+            "timestamp": "2025-06-23T22:48:13.692856",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9337404726288562,
+            "market_conditions": {
+                "volatility": 0.2590877565814014,
+                "sentiment": "bullish",
+                "trend": "up",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 4.724149977899263e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 181,
+            "timestamp": "2025-06-23T22:48:13.751020",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.26370753800330693,
+                "sentiment": "bearish",
+                "trend": "sideways",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 5.905187472374079e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 182,
+            "timestamp": "2025-06-23T22:48:13.751434",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9363094486112645,
+            "market_conditions": {
+                "volatility": 0.2252035008190414,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 7.381484340467599e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 183,
+            "timestamp": "2025-06-23T22:48:13.751833",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.42838473801152566,
+                "sentiment": "neutral",
+                "trend": "sideways",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 9.226855425584498e+20,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 184,
+            "timestamp": "2025-06-23T22:48:13.752223",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9441205926436785,
+            "market_conditions": {
+                "volatility": 0.18624179811037217,
+                "sentiment": "bearish",
+                "trend": "sideways",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.1533569281980622e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 185,
+            "timestamp": "2025-06-23T22:48:13.752629",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.18536012431327975,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.4416961602475778e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 186,
+            "timestamp": "2025-06-23T22:48:13.753015",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.2365990480313409,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.8021202003094722e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 187,
+            "timestamp": "2025-06-23T22:48:13.753446",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3574618607934577,
+                "sentiment": "neutral",
+                "trend": "sideways",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.2526502503868402e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 188,
+            "timestamp": "2025-06-23T22:48:13.753818",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.27616879321901777,
+                "sentiment": "neutral",
+                "trend": "sideways",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.81581281298355e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 189,
+            "timestamp": "2025-06-23T22:48:13.754204",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.31521332395086865,
+                "sentiment": "bullish",
+                "trend": "up",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 3.519766016229438e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 190,
+            "timestamp": "2025-06-23T22:48:13.754535",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.4061766876353251,
+                "sentiment": "bearish",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 4.3997075202867976e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 191,
+            "timestamp": "2025-06-23T22:48:13.810972",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.1685622006742665,
+                "sentiment": "bullish",
+                "trend": "up",
+                "sector": "energy"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 5.499634400358497e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 192,
+            "timestamp": "2025-06-23T22:48:13.811435",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9293789565631414,
+            "market_conditions": {
+                "volatility": 0.3003148114912433,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 6.87454300044812e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 193,
+            "timestamp": "2025-06-23T22:48:13.811800",
+            "success": false,
+            "profit": -0.04010917056361449,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3938564467433412,
+                "sentiment": "neutral",
+                "trend": "up",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 6.598810782696244e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.94,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": -4.082,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 194,
+            "timestamp": "2025-06-23T22:48:13.812199",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.30190200009336665,
+                "sentiment": "bullish",
+                "trend": "sideways",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.94,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 8.248513478370305e+21,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.9605272207530661,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 2.184,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 195,
+            "timestamp": "2025-06-23T22:48:13.812539",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.31217972286149387,
+                "sentiment": "bullish",
+                "trend": "up",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.9605272207530661,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.0310641847962882e+22,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 2.027,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 196,
+            "timestamp": "2025-06-23T22:48:13.812875",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.24167413060253673,
+                "sentiment": "bearish",
+                "trend": "sideways",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.2888302309953604e+22,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 197,
+            "timestamp": "2025-06-23T22:48:13.813223",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3685007675216777,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "healthcare"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 1.6110377887442005e+22,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 198,
+            "timestamp": "2025-06-23T22:48:13.813549",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.9402073386019636,
+            "market_conditions": {
+                "volatility": 0.22315558679082648,
+                "sentiment": "bullish",
+                "trend": "down",
+                "sector": "tech"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.0137972359302507e+22,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 199,
+            "timestamp": "2025-06-23T22:48:13.813884",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.3648949639935207,
+                "sentiment": "bearish",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 2.5172465449128134e+22,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        },
+        {
+            "trade_id": 200,
+            "timestamp": "2025-06-23T22:48:13.814256",
+            "success": true,
+            "profit": 0.25,
+            "confidence": 0.95,
+            "market_conditions": {
+                "volatility": 0.21804904967670305,
+                "sentiment": "neutral",
+                "trend": "down",
+                "sector": "finance"
+            },
+            "pre_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "portfolio_value": 3.1465581811410166e+22,
+            "post_trade_metrics": {
+                "accuracy": 0.98,
+                "profit_per_trade": 0.98,
+                "risk_assessment": 0.96,
+                "timing_precision": 0.98,
+                "market_prediction": 0.98,
+                "pattern_recognition": 0.98,
+                "momentum_detection": 0.98,
+                "volatility_analysis": 0.95
+            },
+            "improvement": {
+                "accuracy": 0.0,
+                "profit_per_trade": 0.0,
+                "risk_assessment": 0.0,
+                "timing_precision": 0.0,
+                "market_prediction": 0.0,
+                "pattern_recognition": 0.0,
+                "momentum_detection": 0.0,
+                "volatility_analysis": 0.0
+            }
+        }
+    ]
+}

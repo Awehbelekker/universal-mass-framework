@@ -22,6 +22,7 @@ class UserRole(Enum):
     ADMIN = "admin"
     DEVELOPER = "developer"
     ANALYST = "analyst"
+    TRADER = "trader"
     VIEWER = "viewer"
 
 class Permission(Enum):
@@ -190,6 +191,22 @@ class AuthenticationService:
                     user_agent TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     success BOOLEAN DEFAULT TRUE
+                )
+            """)
+            
+            # Broker Credentials table
+            self.db_manager.execute_query("""
+                CREATE TABLE IF NOT EXISTS broker_credentials (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    broker TEXT NOT NULL,
+                    api_key TEXT NOT NULL,
+                    api_secret TEXT NOT NULL,
+                    account_name TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
                 )
             """)
             
@@ -548,6 +565,12 @@ class AuthenticationService:
             # Deactivate all API keys
             self.db_manager.execute_query(
                 "UPDATE api_keys SET is_active = 0 WHERE user_id = ?",
+                (user_id,)
+            )
+            
+            # Deactivate all broker credentials
+            self.db_manager.execute_query(
+                "UPDATE broker_credentials SET status = 'inactive' WHERE user_id = ?",
                 (user_id,)
             )
             

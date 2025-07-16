@@ -1,0 +1,30 @@
+data_sources:
+  enabled_sources:
+  - alpha_vantage
+  - twitter
+  - reddit
+  - news_api
+  - openweather
+  - github
+  rate_limits:
+    alpha_vantage: 5
+    default: 100
+    twitter: 300
+environment: development
+performance:
+  cache_size_mb: 512
+  connection_pool_size: 50
+  enable_clustering: false
+  max_concurrent_requests: 1000
+  request_timeout: 30
+  worker_processes: 4
+trust_framework:
+  audit_level: comprehensive
+  bias_detection: true
+  compliance_standards:
+  - SOC2
+  - GDPR
+  enabled: true
+  explanation_depth: standard
+  fairness_monitoring: true
+  human_review_required: false

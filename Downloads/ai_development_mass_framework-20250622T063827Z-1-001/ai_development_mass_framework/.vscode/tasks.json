@@ -68,6 +68,85 @@
       "options": {
         "cwd": "${workspaceFolder}/frontend"
       }
+    },
+    {
+      "label": "Start 48-Hour Trading Trial",
+      "type": "shell",
+      "command": "python",
+      "args": ["launch_trading_trial.py"],
+      "group": "build",
+      "isBackground": false,
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Install Trading Dependencies",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pip", "install", "numpy", "pandas", "requests"],
+      "group": "build",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Comprehensive Automated Testing",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pytest", "tests/", "-v", "--cov=.", "--cov-report=html"],
+      "group": "test",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Frontend Unit Tests",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test", "--coverage", "--watchAll=false"],
+      "group": "test",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      }
+    },
+    {
+      "label": "Performance Load Testing",
+      "type": "shell",
+      "command": "python",
+      "args": ["performance_testing/load_test_suite.py"],
+      "group": "test",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Security Audit",
+      "type": "shell",
+      "command": "python",
+      "args": ["security_audit/security_test_suite.py"],
+      "group": "test",
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "Real Data Trading Simulation",
+      "type": "shell",
+      "command": "python",
+      "args": ["real_data_simulation/admin_trading_simulator.py"],
+      "group": "test",
+      "isBackground": true,
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
     }
   ]
 }

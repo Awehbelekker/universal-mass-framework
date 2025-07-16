@@ -3,381 +3,650 @@ Production Monitoring and Observability for MASS Framework
 Provides metrics, health checks, and monitoring endpoints for cloud deployment
 """
 
-import time
-import json
-import psutil
 import asyncio
-import os
-from datetime import datetime, timezone
-from typing import Dict, Any, List
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
-from pathlib import Path
 import logging
+import time
+import psutil
+import aiohttp
+import redis
+import pymongo
+from typing import Dict, Any, List, Optional, Tuple
+from datetime import datetime, timedelta
+from dataclasses import dataclass, asdict
+from enum import Enum
+import json
+import os
+import subprocess
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class HealthStatus(BaseModel):
-    """Health status response model"""
-    status: str
-    timestamp: str
-    version: str
-    uptime_seconds: float
-    checks: Dict[str, Any]
+class HealthStatus(Enum):
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    UNHEALTHY = "unhealthy"
+    UNKNOWN = "unknown"
 
-class SystemMetrics(BaseModel):
-    """System metrics response model"""
-    timestamp: str
-    cpu_percent: float
-    memory_percent: float
-    memory_available_mb: float
-    disk_usage_percent: float
-    active_connections: int
-    uptime_seconds: float
-
-class ServiceStatus(BaseModel):
-    """Individual service status"""
-    name: str
-    status: str
-    last_check: str
+@dataclass
+class HealthCheck:
+    """Health check result"""
+    service: str
+    status: HealthStatus
     response_time_ms: float
     details: Dict[str, Any]
+    timestamp: datetime
+    error_message: Optional[str] = None
 
-class MonitoringService:
-    """Production monitoring service"""
+@dataclass
+class SystemMetrics:
+    """System performance metrics"""
+    cpu_usage_percent: float
+    memory_usage_percent: float
+    disk_usage_percent: float
+    network_io_bytes: Dict[str, int]
+    active_connections: int
+    timestamp: datetime
+
+class DatabaseHealthChecker:
+    """Database health monitoring"""
     
-    def __init__(self):
-        self.start_time = time.time()
-        self.version = "1.0.0"  # TODO: Read from package.json or version file
-        self.service_checks = {}
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.postgres_url = config.get('postgres_url')
+        self.redis_url = config.get('redis_url')
+        self.mongo_url = config.get('mongo_url')
         
-    async def get_health_status(self) -> HealthStatus:
-        """Get comprehensive health status"""
+    async def check_postgres_health(self) -> HealthCheck:
+        """Check PostgreSQL health"""
+        start_time = time.time()
+        
         try:
-            uptime = time.time() - self.start_time
+            if not self.postgres_url:
+                return HealthCheck(
+                    service="postgresql",
+                    status=HealthStatus.UNKNOWN,
+                    response_time_ms=0,
+                    details={"error": "No PostgreSQL URL configured"},
+                    timestamp=datetime.utcnow()
+                )
             
-            # Perform health checks
-            checks = await self._perform_health_checks()
+            # Test connection
+            import asyncpg
+            conn = await asyncpg.connect(self.postgres_url)
             
-            # Determine overall status
-            overall_status = "healthy"
-            for check_name, check_result in checks.items():
-                if check_result.get("status") != "healthy":
-                    overall_status = "degraded" if overall_status == "healthy" else "unhealthy"
+            # Test query
+            result = await conn.fetchval("SELECT 1")
+            await conn.close()
             
-            return HealthStatus(
-                status=overall_status,
-                timestamp=datetime.now(timezone.utc).isoformat(),
-                version=self.version,
-                uptime_seconds=uptime,
-                checks=checks
-            )
+            response_time = (time.time() - start_time) * 1000
+            
+            if result == 1:
+                return HealthCheck(
+                    service="postgresql",
+                    status=HealthStatus.HEALTHY,
+                    response_time_ms=response_time,
+                    details={"connection": "ok", "query_test": "passed"},
+                    timestamp=datetime.utcnow()
+                )
+            else:
+                return HealthCheck(
+                    service="postgresql",
+                    status=HealthStatus.UNHEALTHY,
+                    response_time_ms=response_time,
+                    details={"connection": "ok", "query_test": "failed"},
+                    timestamp=datetime.utcnow(),
+                    error_message="Query test failed"
+                )
+                
         except Exception as e:
-            logger.error(f"Health check failed: {e}")
-            return HealthStatus(
-                status="unhealthy",
-                timestamp=datetime.now(timezone.utc).isoformat(),
-                version=self.version,
-                uptime_seconds=time.time() - self.start_time,
-                checks={"error": {"status": "unhealthy", "message": str(e)}}
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheck(
+                service="postgresql",
+                status=HealthStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                details={"connection": "failed", "error": str(e)},
+                timestamp=datetime.utcnow(),
+                error_message=str(e)
             )
     
-    async def get_system_metrics(self) -> SystemMetrics:
-        """Get system performance metrics"""
+    async def check_redis_health(self) -> HealthCheck:
+        """Check Redis health"""
+        start_time = time.time()
+        
+        try:
+            if not self.redis_url:
+                return HealthCheck(
+                    service="redis",
+                    status=HealthStatus.UNKNOWN,
+                    response_time_ms=0,
+                    details={"error": "No Redis URL configured"},
+                    timestamp=datetime.utcnow()
+                )
+            
+            # Test connection
+            redis_client = redis.from_url(self.redis_url)
+            
+            # Test ping
+            result = redis_client.ping()
+            
+            # Test set/get
+            test_key = f"health_check_{int(time.time())}"
+            redis_client.set(test_key, "test_value", ex=60)
+            test_value = redis_client.get(test_key)
+            redis_client.delete(test_key)
+            
+            response_time = (time.time() - start_time) * 1000
+            
+            if result and test_value == b"test_value":
+                return HealthCheck(
+                    service="redis",
+                    status=HealthStatus.HEALTHY,
+                    response_time_ms=response_time,
+                    details={"connection": "ok", "ping": "ok", "read_write": "ok"},
+                    timestamp=datetime.utcnow()
+                )
+            else:
+                return HealthCheck(
+                    service="redis",
+                    status=HealthStatus.UNHEALTHY,
+                    response_time_ms=response_time,
+                    details={"connection": "ok", "ping": "failed", "read_write": "failed"},
+                    timestamp=datetime.utcnow(),
+                    error_message="Redis operations failed"
+                )
+                
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheck(
+                service="redis",
+                status=HealthStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                details={"connection": "failed", "error": str(e)},
+                timestamp=datetime.utcnow(),
+                error_message=str(e)
+            )
+    
+    async def check_mongo_health(self) -> HealthCheck:
+        """Check MongoDB health"""
+        start_time = time.time()
+        
+        try:
+            if not self.mongo_url:
+                return HealthCheck(
+                    service="mongodb",
+                    status=HealthStatus.UNKNOWN,
+                    response_time_ms=0,
+                    details={"error": "No MongoDB URL configured"},
+                    timestamp=datetime.utcnow()
+                )
+            
+            # Test connection
+            client = pymongo.MongoClient(self.mongo_url)
+            
+            # Test ping
+            result = client.admin.command('ping')
+            
+            # Test database operations
+            test_db = client.test
+            test_collection = test_db.health_check
+            test_doc = {"test": "value", "timestamp": datetime.utcnow()}
+            
+            # Insert test document
+            insert_result = test_collection.insert_one(test_doc)
+            
+            # Read test document
+            read_result = test_collection.find_one({"_id": insert_result.inserted_id})
+            
+            # Delete test document
+            test_collection.delete_one({"_id": insert_result.inserted_id})
+            
+            client.close()
+            
+            response_time = (time.time() - start_time) * 1000
+            
+            if result.get('ok') == 1 and read_result:
+                return HealthCheck(
+                    service="mongodb",
+                    status=HealthStatus.HEALTHY,
+                    response_time_ms=response_time,
+                    details={"connection": "ok", "ping": "ok", "crud_operations": "ok"},
+                    timestamp=datetime.utcnow()
+                )
+            else:
+                return HealthCheck(
+                    service="mongodb",
+                    status=HealthStatus.UNHEALTHY,
+                    response_time_ms=response_time,
+                    details={"connection": "ok", "ping": "failed", "crud_operations": "failed"},
+                    timestamp=datetime.utcnow(),
+                    error_message="MongoDB operations failed"
+                )
+                
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheck(
+                service="mongodb",
+                status=HealthStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                details={"connection": "failed", "error": str(e)},
+                timestamp=datetime.utcnow(),
+                error_message=str(e)
+            )
+
+class AIHealthChecker:
+    """AI services health monitoring"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.openai_key = config.get('openai_api_key')
+        self.anthropic_key = config.get('anthropic_api_key')
+        
+    async def check_openai_health(self) -> HealthCheck:
+        """Check OpenAI API health"""
+        start_time = time.time()
+        
+        try:
+            if not self.openai_key:
+                return HealthCheck(
+                    service="openai",
+                    status=HealthStatus.UNKNOWN,
+                    response_time_ms=0,
+                    details={"error": "No OpenAI API key configured"},
+                    timestamp=datetime.utcnow()
+                )
+            
+            # Test OpenAI API
+            headers = {
+                "Authorization": f"Bearer {self.openai_key}",
+                "Content-Type": "application/json"
+            }
+            
+            data = {
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "max_tokens": 5
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers=headers,
+                    json=data,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    result = await response.json()
+                    
+                    response_time = (time.time() - start_time) * 1000
+                    
+                    if response.status == 200 and 'choices' in result:
+                        return HealthCheck(
+                            service="openai",
+                            status=HealthStatus.HEALTHY,
+                            response_time_ms=response_time,
+                            details={"connection": "ok", "api_test": "passed"},
+                            timestamp=datetime.utcnow()
+                        )
+                    else:
+                        return HealthCheck(
+                            service="openai",
+                            status=HealthStatus.UNHEALTHY,
+                            response_time_ms=response_time,
+                            details={"connection": "ok", "api_test": "failed", "error": result.get('error', 'Unknown error')},
+                            timestamp=datetime.utcnow(),
+                            error_message=f"OpenAI API error: {result.get('error', 'Unknown error')}"
+                        )
+                        
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheck(
+                service="openai",
+                status=HealthStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                details={"connection": "failed", "error": str(e)},
+                timestamp=datetime.utcnow(),
+                error_message=str(e)
+            )
+    
+    async def check_anthropic_health(self) -> HealthCheck:
+        """Check Anthropic API health"""
+        start_time = time.time()
+        
+        try:
+            if not self.anthropic_key:
+                return HealthCheck(
+                    service="anthropic",
+                    status=HealthStatus.UNKNOWN,
+                    response_time_ms=0,
+                    details={"error": "No Anthropic API key configured"},
+                    timestamp=datetime.utcnow()
+                )
+            
+            # Test Anthropic API
+            headers = {
+                "x-api-key": self.anthropic_key,
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
+            }
+            
+            data = {
+                "model": "claude-3-sonnet-20240229",
+                "max_tokens": 5,
+                "messages": [{"role": "user", "content": "Hello"}]
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers=headers,
+                    json=data,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    result = await response.json()
+                    
+                    response_time = (time.time() - start_time) * 1000
+                    
+                    if response.status == 200 and 'content' in result:
+                        return HealthCheck(
+                            service="anthropic",
+                            status=HealthStatus.HEALTHY,
+                            response_time_ms=response_time,
+                            details={"connection": "ok", "api_test": "passed"},
+                            timestamp=datetime.utcnow()
+                        )
+                    else:
+                        return HealthCheck(
+                            service="anthropic",
+                            status=HealthStatus.UNHEALTHY,
+                            response_time_ms=response_time,
+                            details={"connection": "ok", "api_test": "failed", "error": result.get('error', 'Unknown error')},
+                            timestamp=datetime.utcnow(),
+                            error_message=f"Anthropic API error: {result.get('error', 'Unknown error')}"
+                        )
+                        
+        except Exception as e:
+            response_time = (time.time() - start_time) * 1000
+            return HealthCheck(
+                service="anthropic",
+                status=HealthStatus.UNHEALTHY,
+                response_time_ms=response_time,
+                details={"connection": "failed", "error": str(e)},
+                timestamp=datetime.utcnow(),
+                error_message=str(e)
+            )
+
+class SystemMonitor:
+    """System performance monitoring"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.metrics_history: List[SystemMetrics] = []
+        self.max_history_size = config.get('max_history_size', 1000)
+        
+    def get_system_metrics(self) -> SystemMetrics:
+        """Get current system metrics"""
         try:
             # CPU usage
-            cpu_percent = psutil.cpu_percent(interval=0.1)
+            cpu_usage = psutil.cpu_percent(interval=1)
             
             # Memory usage
             memory = psutil.virtual_memory()
-            memory_percent = memory.percent
-            memory_available_mb = memory.available / (1024 * 1024)
+            memory_usage = memory.percent
             
             # Disk usage
             disk = psutil.disk_usage('/')
-            disk_usage_percent = (disk.used / disk.total) * 100
+            disk_usage = disk.percent
             
-            # Network connections (approximate active connections)
-            connections = len(psutil.net_connections(kind='inet'))
+            # Network I/O
+            network = psutil.net_io_counters()
+            network_io = {
+                'bytes_sent': network.bytes_sent,
+                'bytes_recv': network.bytes_recv
+            }
             
-            uptime = time.time() - self.start_time
+            # Active connections (approximate)
+            active_connections = len(psutil.net_connections())
             
-            return SystemMetrics(
-                timestamp=datetime.now(timezone.utc).isoformat(),
-                cpu_percent=cpu_percent,
-                memory_percent=memory_percent,
-                memory_available_mb=memory_available_mb,
-                disk_usage_percent=disk_usage_percent,
-                active_connections=connections,
-                uptime_seconds=uptime
+            metrics = SystemMetrics(
+                cpu_usage_percent=cpu_usage,
+                memory_usage_percent=memory_usage,
+                disk_usage_percent=disk_usage,
+                network_io_bytes=network_io,
+                active_connections=active_connections,
+                timestamp=datetime.utcnow()
             )
+            
+            # Store in history
+            self.metrics_history.append(metrics)
+            
+            # Trim history if too large
+            if len(self.metrics_history) > self.max_history_size:
+                self.metrics_history = self.metrics_history[-self.max_history_size:]
+            
+            return metrics
+            
         except Exception as e:
-            logger.error(f"Failed to get system metrics: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to get system metrics: {e}")
+            logger.error(f"System metrics error: {e}")
+            return SystemMetrics(
+                cpu_usage_percent=0.0,
+                memory_usage_percent=0.0,
+                disk_usage_percent=0.0,
+                network_io_bytes={'bytes_sent': 0, 'bytes_recv': 0},
+                active_connections=0,
+                timestamp=datetime.utcnow()
+            )
     
-    async def _perform_health_checks(self) -> Dict[str, Any]:
-        """Perform various health checks"""
-        checks = {}
-        
-        # Database health check
-        checks["database"] = await self._check_database_health()
-        
-        # Redis health check  
-        checks["redis"] = await self._check_redis_health()
-        
-        # File system health check
-        checks["filesystem"] = await self._check_filesystem_health()
-        
-        # AI services health check
-        checks["ai_services"] = await self._check_ai_services_health()
-        
-        return checks
-    
-    async def _check_database_health(self) -> Dict[str, Any]:
-        """Check database connectivity and performance"""
+    def get_metrics_history(self, hours: int = 24) -> List[SystemMetrics]:
+        """Get system metrics history"""
         try:
-            # TODO: Implement actual database health check
-            # For now, check if database file exists
-            db_path = Path("mass_framework.db")
-            if db_path.exists():
-                return {
-                    "status": "healthy",
-                    "response_time_ms": 5.0,
-                    "details": {"connection": "ok", "file_exists": True}
-                }
-            else:
-                return {
-                    "status": "unhealthy", 
-                    "response_time_ms": 0,
-                    "details": {"connection": "failed", "file_exists": False}
-                }
+            cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+            return [m for m in self.metrics_history if m.timestamp >= cutoff_time]
         except Exception as e:
-            return {
-                "status": "unhealthy",
-                "response_time_ms": 0,
-                "details": {"error": str(e)}
-            }
+            logger.error(f"Get metrics history error: {e}")
+            return []
     
-    async def _check_redis_health(self) -> Dict[str, Any]:
-        """Check Redis connectivity"""
+    def get_performance_alerts(self) -> List[Dict[str, Any]]:
+        """Get performance alerts based on thresholds"""
         try:
-            # TODO: Implement actual Redis health check
-            # For now, assume healthy if Redis URL is configured
-            return {
-                "status": "healthy",
-                "response_time_ms": 2.0,
-                "details": {"connection": "ok", "mock": True}
-            }
+            alerts = []
+            current_metrics = self.get_system_metrics()
+            
+            # CPU alert
+            if current_metrics.cpu_usage_percent > 80:
+                alerts.append({
+                    'type': 'high_cpu',
+                    'severity': 'warning',
+                    'message': f"High CPU usage: {current_metrics.cpu_usage_percent:.1f}%",
+                    'timestamp': current_metrics.timestamp.isoformat()
+                })
+            
+            # Memory alert
+            if current_metrics.memory_usage_percent > 85:
+                alerts.append({
+                    'type': 'high_memory',
+                    'severity': 'warning',
+                    'message': f"High memory usage: {current_metrics.memory_usage_percent:.1f}%",
+                    'timestamp': current_metrics.timestamp.isoformat()
+                })
+            
+            # Disk alert
+            if current_metrics.disk_usage_percent > 90:
+                alerts.append({
+                    'type': 'high_disk',
+                    'severity': 'critical',
+                    'message': f"High disk usage: {current_metrics.disk_usage_percent:.1f}%",
+                    'timestamp': current_metrics.timestamp.isoformat()
+                })
+            
+            return alerts
+            
         except Exception as e:
-            return {
-                "status": "degraded",
-                "response_time_ms": 0,
-                "details": {"error": str(e), "mock": True}
-            }
+            logger.error(f"Performance alerts error: {e}")
+            return []
+
+class MonitoringService:
+    """Main monitoring service that coordinates all health checks"""
     
-    async def _check_filesystem_health(self) -> Dict[str, Any]:
-        """Check filesystem health"""
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.db_checker = DatabaseHealthChecker(config.get('database', {}))
+        self.ai_checker = AIHealthChecker(config.get('ai_services', {}))
+        self.system_monitor = SystemMonitor(config.get('system', {}))
+        self.health_history: List[HealthCheck] = []
+        self.max_health_history = config.get('max_health_history', 1000)
+        
+    async def run_health_checks(self) -> Dict[str, Any]:
+        """Run all health checks"""
         try:
-            # Check available disk space
-            disk = psutil.disk_usage('.')
-            free_space_gb = disk.free / (1024 * 1024 * 1024)
+            health_checks = []
             
-            if free_space_gb < 1.0:  # Less than 1GB free
-                status = "unhealthy"
-            elif free_space_gb < 5.0:  # Less than 5GB free
-                status = "degraded"
-            else:
-                status = "healthy"
+            # Database health checks
+            postgres_health = await self.db_checker.check_postgres_health()
+            health_checks.append(postgres_health)
+            
+            redis_health = await self.db_checker.check_redis_health()
+            health_checks.append(redis_health)
+            
+            mongo_health = await self.db_checker.check_mongo_health()
+            health_checks.append(mongo_health)
+            
+            # AI services health checks
+            openai_health = await self.ai_checker.check_openai_health()
+            health_checks.append(openai_health)
+            
+            anthropic_health = await self.ai_checker.check_anthropic_health()
+            health_checks.append(anthropic_health)
+            
+            # System metrics
+            system_metrics = self.system_monitor.get_system_metrics()
+            
+            # Store health checks in history
+            for check in health_checks:
+                self.health_history.append(check)
+            
+            # Trim history if too large
+            if len(self.health_history) > self.max_health_history:
+                self.health_history = self.health_history[-self.max_health_history:]
+            
+            # Calculate overall health
+            overall_status = self._calculate_overall_health(health_checks)
+            
+            # Get performance alerts
+            alerts = self.system_monitor.get_performance_alerts()
             
             return {
-                "status": status,
-                "response_time_ms": 1.0,
-                "details": {
-                    "free_space_gb": round(free_space_gb, 2),
-                    "total_space_gb": round(disk.total / (1024 * 1024 * 1024), 2),
-                    "usage_percent": round((disk.used / disk.total) * 100, 1)
-                }
+                'overall_status': overall_status.value,
+                'health_checks': [asdict(check) for check in health_checks],
+                'system_metrics': asdict(system_metrics),
+                'alerts': alerts,
+                'timestamp': datetime.utcnow().isoformat()
             }
+            
         except Exception as e:
+            logger.error(f"Health checks error: {e}")
             return {
-                "status": "unhealthy",
-                "response_time_ms": 0,
-                "details": {"error": str(e)}
+                'overall_status': HealthStatus.UNHEALTHY.value,
+                'health_checks': [],
+                'system_metrics': {},
+                'alerts': [{'type': 'monitoring_error', 'severity': 'critical', 'message': str(e)}],
+                'timestamp': datetime.utcnow().isoformat()
             }
     
-    async def _check_ai_services_health(self) -> Dict[str, Any]:
-        """Check AI services health"""
+    def _calculate_overall_health(self, health_checks: List[HealthCheck]) -> HealthStatus:
+        """Calculate overall system health"""
         try:
-            # TODO: Implement actual AI service health checks
-            # For now, check if required environment variables are set
-            import os
+            if not health_checks:
+                return HealthStatus.UNKNOWN
             
-            openai_configured = bool(os.getenv("OPENAI_API_KEY"))
-            anthropic_configured = bool(os.getenv("ANTHROPIC_API_KEY"))
+            status_counts = {}
+            for check in health_checks:
+                status = check.status.value
+                status_counts[status] = status_counts.get(status, 0) + 1
             
-            if openai_configured or anthropic_configured:
-                status = "healthy"
-            else:
-                status = "degraded"
+            # If any service is unhealthy, overall is unhealthy
+            if status_counts.get('unhealthy', 0) > 0:
+                return HealthStatus.UNHEALTHY
             
-            return {
-                "status": status,
-                "response_time_ms": 3.0,
-                "details": {
-                    "openai_configured": openai_configured,
-                    "anthropic_configured": anthropic_configured,
-                    "mock": True
-                }
-            }
+            # If any service is degraded, overall is degraded
+            if status_counts.get('degraded', 0) > 0:
+                return HealthStatus.DEGRADED
+            
+            # If all services are healthy, overall is healthy
+            if status_counts.get('healthy', 0) == len(health_checks):
+                return HealthStatus.HEALTHY
+            
+            # Default to unknown
+            return HealthStatus.UNKNOWN
+            
         except Exception as e:
+            logger.error(f"Overall health calculation error: {e}")
+            return HealthStatus.UNKNOWN
+    
+    async def get_health_history(self, hours: int = 24) -> List[Dict[str, Any]]:
+        """Get health check history"""
+        try:
+            cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+            recent_checks = [check for check in self.health_history if check.timestamp >= cutoff_time]
+            return [asdict(check) for check in recent_checks]
+        except Exception as e:
+            logger.error(f"Get health history error: {e}")
+            return []
+    
+    async def get_service_status(self, service_name: str) -> Optional[Dict[str, Any]]:
+        """Get status of a specific service"""
+        try:
+            # Find the most recent health check for the service
+            for check in reversed(self.health_history):
+                if check.service == service_name:
+                    return asdict(check)
+            return None
+        except Exception as e:
+            logger.error(f"Get service status error: {e}")
+            return None
+    
+    async def get_system_summary(self) -> Dict[str, Any]:
+        """Get system monitoring summary"""
+        try:
+            # Get recent health checks
+            recent_checks = self.health_history[-10:] if self.health_history else []
+            
+            # Calculate service availability
+            service_availability = {}
+            for check in recent_checks:
+                service = check.service
+                if service not in service_availability:
+                    service_availability[service] = {'healthy': 0, 'total': 0}
+                
+                service_availability[service]['total'] += 1
+                if check.status == HealthStatus.HEALTHY:
+                    service_availability[service]['healthy'] += 1
+            
+            # Calculate availability percentages
+            for service in service_availability:
+                total = service_availability[service]['total']
+                healthy = service_availability[service]['healthy']
+                service_availability[service]['availability_percent'] = (healthy / total * 100) if total > 0 else 0
+            
+            # Get current system metrics
+            current_metrics = self.system_monitor.get_system_metrics()
+            
+            # Get performance alerts
+            alerts = self.system_monitor.get_performance_alerts()
+            
             return {
-                "status": "unhealthy",
-                "response_time_ms": 0,
-                "details": {"error": str(e)}
+                'service_availability': service_availability,
+                'current_metrics': asdict(current_metrics),
+                'alerts': alerts,
+                'total_health_checks': len(self.health_history),
+                'last_check_time': datetime.utcnow().isoformat()
             }
-
-# Create monitoring service instance
-monitoring_service = MonitoringService()
-
-# Create router for monitoring endpoints
-monitoring_router = APIRouter(prefix="/monitoring", tags=["monitoring"])
-
-@monitoring_router.get("/health", response_model=HealthStatus)
-async def health_check():
-    """
-    Comprehensive health check endpoint
-    Returns detailed health status of all system components
-    """
-    return await monitoring_service.get_health_status()
-
-@monitoring_router.get("/health/live")
-async def liveness_probe():
-    """
-    Kubernetes liveness probe endpoint
-    Returns 200 if service is running
-    """
-    return {"status": "alive", "timestamp": datetime.now(timezone.utc).isoformat()}
-
-@monitoring_router.get("/health/ready")
-async def readiness_probe():
-    """
-    Kubernetes readiness probe endpoint
-    Returns 200 if service is ready to accept traffic
-    """
-    health = await monitoring_service.get_health_status()
-    if health.status in ["healthy", "degraded"]:
-        return {"status": "ready", "timestamp": datetime.now(timezone.utc).isoformat()}
-    else:
-        raise HTTPException(status_code=503, detail="Service not ready")
-
-@monitoring_router.get("/metrics", response_model=SystemMetrics)
-async def system_metrics():
-    """
-    System metrics endpoint for monitoring
-    Returns CPU, memory, disk, and network metrics
-    """
-    return await monitoring_service.get_system_metrics()
-
-@monitoring_router.get("/metrics/prometheus")
-async def prometheus_metrics():
-    """
-    Prometheus-compatible metrics endpoint
-    Returns metrics in Prometheus format
-    """
-    try:
-        metrics = await monitoring_service.get_system_metrics()
-        health = await monitoring_service.get_health_status()
-        
-        # Convert to Prometheus format
-        prometheus_metrics = f"""# HELP mass_framework_uptime_seconds Uptime in seconds
-# TYPE mass_framework_uptime_seconds counter
-mass_framework_uptime_seconds {metrics.uptime_seconds}
-
-# HELP mass_framework_cpu_percent CPU usage percentage
-# TYPE mass_framework_cpu_percent gauge
-mass_framework_cpu_percent {metrics.cpu_percent}
-
-# HELP mass_framework_memory_percent Memory usage percentage  
-# TYPE mass_framework_memory_percent gauge
-mass_framework_memory_percent {metrics.memory_percent}
-
-# HELP mass_framework_disk_usage_percent Disk usage percentage
-# TYPE mass_framework_disk_usage_percent gauge
-mass_framework_disk_usage_percent {metrics.disk_usage_percent}
-
-# HELP mass_framework_active_connections Number of active network connections
-# TYPE mass_framework_active_connections gauge
-mass_framework_active_connections {metrics.active_connections}
-
-# HELP mass_framework_health_status Overall health status (1=healthy, 0.5=degraded, 0=unhealthy)
-# TYPE mass_framework_health_status gauge
-mass_framework_health_status {1 if health.status == "healthy" else 0.5 if health.status == "degraded" else 0}
-"""
-        
-        return prometheus_metrics
-    except Exception as e:
-        logger.error(f"Failed to generate Prometheus metrics: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate metrics")
-
-@monitoring_router.get("/info")
-async def system_info():
-    """
-    System information endpoint
-    Returns general system and application information
-    """
-    try:
-        import platform
-        import sys
-        
-        return {
-            "application": {
-                "name": "MASS Framework",
-                "version": monitoring_service.version,
-                "uptime_seconds": time.time() - monitoring_service.start_time,
-                "start_time": datetime.fromtimestamp(monitoring_service.start_time, timezone.utc).isoformat()
-            },
-            "system": {
-                "platform": platform.platform(),
-                "architecture": platform.architecture()[0],
-                "python_version": sys.version,
-                "cpu_count": psutil.cpu_count(),
-                "memory_total_gb": round(psutil.virtual_memory().total / (1024 * 1024 * 1024), 2)
-            },
-            "environment": {
-                "mass_environment": os.getenv("MASS_ENVIRONMENT", "development"),
-                "debug_mode": os.getenv("DEBUG", "false").lower() == "true"
+            
+        except Exception as e:
+            logger.error(f"System summary error: {e}")
+            return {
+                'service_availability': {},
+                'current_metrics': {},
+                'alerts': [{'type': 'summary_error', 'severity': 'critical', 'message': str(e)}],
+                'total_health_checks': 0,
+                'last_check_time': datetime.utcnow().isoformat()
             }
-        }
-    except Exception as e:
-        logger.error(f"Failed to get system info: {e}")
-        raise HTTPException(status_code=500, detail="Failed to get system information")
-
-# Legacy health endpoint for backward compatibility
-@monitoring_router.get("/")
-async def root_health():
-    """Root monitoring endpoint - redirects to health check"""
-    return await health_check()
-
-if __name__ == "__main__":
-    # Test the monitoring service
-    import asyncio
-    
-    async def test_monitoring():
-        service = MonitoringService()
-        
-        print("Testing health check...")
-        health = await service.get_health_status()
-        print(f"Health Status: {health.status}")
-        print(f"Uptime: {health.uptime_seconds:.2f}s")
-        print(f"Checks: {len(health.checks)}")
-        
-        print("\nTesting system metrics...")
-        metrics = await service.get_system_metrics()
-        print(f"CPU: {metrics.cpu_percent}%")
-        print(f"Memory: {metrics.memory_percent}%")
-        print(f"Disk: {metrics.disk_usage_percent}%")
-        print(f"Connections: {metrics.active_connections}")
-    
-    asyncio.run(test_monitoring())

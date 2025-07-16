@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import './ProjectAnalysis.css';
+import SearchIcon from '@mui/icons-material/Search';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import SyncIcon from '@mui/icons-material/Sync';
+import ErrorIcon from '@mui/icons-material/Error';
 
 interface AnalysisResult {
   success: boolean;
@@ -381,7 +385,7 @@ const ProjectAnalysis: React.FC = () => {
   return (
     <div className="project-analysis">
       <div className="analysis-header">
-        <h2>🔍 AI Project Analysis</h2>
+        <h2><SearchIcon sx={{ fontSize: 24, color: 'primary.main', mr: 1 }} /> AI Project Analysis</h2>
         <p>Get comprehensive insights about your project using AI</p>
       </div>
 
@@ -423,12 +427,13 @@ const ProjectAnalysis: React.FC = () => {
             onClick={analyzeProject}
             disabled={loading || !projectPath.trim()}
           >
-            {loading ? '🔄 Analyzing...' : '🚀 Start Analysis'}
+            {loading ? <SyncIcon sx={{ fontSize: 16, mr: 1 }} /> : <RocketLaunchIcon sx={{ fontSize: 16, mr: 1 }} />}
+            {loading ? 'Analyzing...' : 'Start Analysis'}
           </button>
 
           {error && (
             <div className="error-message">
-              <p>❌ {error}</p>
+              <p><ErrorIcon sx={{ fontSize: 16, color: 'error.main', mr: 1 }} /> {error}</p>
             </div>
           )}
         </div>

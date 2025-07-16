@@ -33,9 +33,10 @@ interface Project {
 interface SidebarProps {
   selectedItem: string;
   setSelectedItem: (id: string) => void;
+  currentUser?: { role: string } | null;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ selectedItem, setSelectedItem }) => {
+const Sidebar: React.FC<SidebarProps> = ({ selectedItem, setSelectedItem, currentUser }) => {
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [projects] = useState<Project[]>([
     { id: '1', name: 'Demo Project', path: '/demo', status: 'active' },
@@ -46,10 +47,25 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedItem, setSelectedItem }) => {
     { id: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
     { id: 'agents', label: 'Agents', icon: AgentsIcon },
     { id: 'workflows', label: 'Workflows', icon: PlayIcon },
+    { id: 'pricing', label: 'Pricing', icon: SettingsIcon },
+    { id: 'contact', label: 'Contact', icon: SettingsIcon },
+    
+    // Multi-Platform Intelligent Trading
+    { id: 'intelligent-trading', label: 'Intelligent Trading', icon: PlayIcon, badge: 'AI' },
+    { id: 'trading', label: 'Trading Dashboard', icon: PlayIcon, isTrader: true },
+    { id: 'arbitrage-agents', label: 'Arbitrage Agents', icon: AgentsIcon, badge: 'new' },
+    { id: 'sync-agents', label: 'Synchronization Agents', icon: AgentsIcon, badge: 'new' },
+    { id: 'platform-agents', label: 'Platform Specialists', icon: AgentsIcon, badge: 'new' },
+    { id: 'regulatory-agents', label: 'Compliance Agents', icon: AgentsIcon, badge: 'new' },
+    
+    // System Health & Monitoring
+    { id: 'system-health', label: 'System Health', icon: SettingsIcon, badge: 'new' },
+    
+    // Standard menu items
     { id: 'marketplace', label: 'Marketplace', icon: AddIcon },
     { id: 'orchestrator', label: 'Orchestrator', icon: PlayIcon },
     { id: 'analytics', label: 'Analytics', icon: DashboardIcon },
-    { id: 'user-management', label: 'User Management', icon: SettingsIcon },
+    { id: 'user-management', label: 'User Management', icon: SettingsIcon, isAdmin: true },
     { id: 'audit-logs', label: 'Audit Logs', icon: SettingsIcon },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -65,6 +81,12 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedItem, setSelectedItem }) => {
       default: return 'default';
     }
   };
+
+  // Only show User Management tab for admin
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.id === 'user-management' && currentUser?.role !== 'admin') return false;
+    return true;
+  });
 
   return (
     <Box 
@@ -86,39 +108,61 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedItem, setSelectedItem }) => {
         <Typography variant="body2" sx={{ color: '#888', mt: 0.5 }}>
           Multi-Agent System Search
         </Typography>
-      </Box>
-
-      {/* Navigation */}
+      </Box>      {/* Navigation */}
       <List sx={{ pt: 1 }}>
-        {menuItems.map((item) => (
-          <ListItem key={item.id} disablePadding>
-            <ListItemButton
-              selected={selectedItem === item.id}
-              onClick={() => handleItemClick(item.id)}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: '#333',
-                  '&:hover': {
-                    backgroundColor: '#444',
+        {filteredMenuItems.map((item) => {
+          // Skip items based on permissions
+          if ((item.isAdmin && currentUser?.role !== 'admin') || 
+              (item.isTrader && currentUser?.role !== 'trader' && currentUser?.role !== 'admin')) {
+            return null;
+          }
+          
+          return (
+            <ListItem key={item.id} disablePadding>
+              <ListItemButton
+                selected={selectedItem === item.id}
+                onClick={() => handleItemClick(item.id)}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: '#333',
+                    '&:hover': {
+                      backgroundColor: '#444',
+                    },
                   },
-                },
-                '&:hover': {
-                  backgroundColor: '#2a2a2a',
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: selectedItem === item.id ? '#90caf9' : '#888' }}>
-                <item.icon />
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
+                  '&:hover': {
+                    backgroundColor: '#2a2a2a',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: selectedItem === item.id ? '#90caf9' : '#888' }}>
+                  <item.icon />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <>
+                      {item.label}
+                      {item.badge && (
+                        <Chip 
+                          label={item.badge} 
+                          size="small" 
+                          sx={{ 
+                            ml: 1, 
+                            height: 20, 
+                            fontSize: '0.7rem',
+                            backgroundColor: item.badge === 'new' ? '#4caf50' : 
+                                           item.badge === 'AI' ? '#9c27b0' : '#2196f3',
+                            color: 'white'
+                          }} 
+                        />
+                      )}
+                    </>
+                  }
                 sx={{
                   color: selectedItem === item.id ? '#90caf9' : '#ffffff',
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                }}              />
+            </ListItemButton>          </ListItem>
+        );
+      })}
       </List>
 
       <Divider sx={{ borderColor: '#333', my: 1 }} />

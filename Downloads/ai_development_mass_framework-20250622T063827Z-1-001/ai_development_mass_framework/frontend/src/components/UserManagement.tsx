@@ -26,6 +26,9 @@ interface CreateUserForm {
   password: string;
   role: string;
   tenant_id: string;
+  investment_amount?: number;
+  is_trial?: boolean;
+  currency?: string; // New: currency code (e.g. USD, EUR, GBP)
 }
 
 interface APIKey {
@@ -50,7 +53,10 @@ const UserManagement: React.FC = () => {
     email: '',
     password: '',
     role: 'viewer',
-    tenant_id: 'default'
+    tenant_id: 'default',
+    investment_amount: undefined,
+    is_trial: false,
+    currency: 'USD'
   });
   
   const [apiKeyForm, setApiKeyForm] = useState({
@@ -115,13 +121,13 @@ const UserManagement: React.FC = () => {
     return response.json();
   };
 
+  // Replace loadUsers with real API call to /admin/users
   const loadUsers = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      // Note: In a real implementation, you'd have a users list endpoint
-      // For now, we'll show a placeholder
-      setUsers([]);
+      const users = await apiCall('/admin/users');
+      setUsers(users);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
@@ -155,26 +161,27 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Replace createUser with real API call to /admin/users
   const createUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setIsLoading(true);
       setError(null);
-      
-      await apiCall('/auth/users', {
+      await apiCall('/admin/users', {
         method: 'POST',
         body: JSON.stringify(createUserForm),
       });
-      
       setShowCreateUser(false);
       setCreateUserForm({
         username: '',
         email: '',
         password: '',
         role: 'viewer',
-        tenant_id: 'default'
+        tenant_id: 'default',
+        investment_amount: undefined,
+        is_trial: false,
+        currency: 'USD'
       });
-      
       loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create user');
@@ -212,16 +219,15 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Replace updateUserRole with PATCH to /admin/users/{user_id}
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      await apiCall(`/auth/users/${userId}/role`, {
-        method: 'PUT',
+      await apiCall(`/admin/users/${userId}`, {
+        method: 'PATCH',
         body: JSON.stringify({ role: newRole }),
       });
-      
       loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user role');
@@ -230,19 +236,17 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Replace deactivateUser with DELETE to /admin/users/{user_id}
   const deactivateUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to deactivate this user?')) {
+    if (!window.confirm('Are you sure you want to deactivate this user?')) {
       return;
     }
-    
     try {
       setIsLoading(true);
       setError(null);
-      
-      await apiCall(`/auth/users/${userId}`, {
+      await apiCall(`/admin/users/${userId}`, {
         method: 'DELETE',
       });
-      
       loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to deactivate user');
@@ -433,6 +437,54 @@ const UserManagement: React.FC = () => {
                       }))}
                       required
                     />
+                  </div>
+                  <div className="form-group">
+                    <label>Initial Investment Amount (USD):</label>
+                    <input
+                      type="number"
+                      value={createUserForm.investment_amount || ''}
+                      onChange={(e) => setCreateUserForm(prev => ({
+                        ...prev,
+                        investment_amount: e.target.value ? parseFloat(e.target.value) : undefined
+                      }))}
+                      min="0"
+                      step="0.01"
+                      placeholder="e.g. 10000"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={!!createUserForm.is_trial}
+                        onChange={e => setCreateUserForm(prev => ({
+                          ...prev,
+                          is_trial: e.target.checked
+                        }))}
+                      />
+                      {' '}Enable 48-hour Test Run (Proof of Concept)
+                    </label>
+                  </div>
+                  <div className="form-group">
+                    <label>Currency:</label>
+                    <select
+                      value={createUserForm.currency}
+                      onChange={e => setCreateUserForm(prev => ({
+                        ...prev,
+                        currency: e.target.value
+                      }))}
+                    >
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="EUR">EUR - Euro</option>
+                      <option value="GBP">GBP - British Pound</option>
+                      <option value="ZAR">ZAR - South African Rand</option>
+                      <option value="JPY">JPY - Japanese Yen</option>
+                      <option value="CNY">CNY - Chinese Yuan</option>
+                      <option value="INR">INR - Indian Rupee</option>
+                      <option value="BTC">BTC - Bitcoin</option>
+                      <option value="ETH">ETH - Ethereum</option>
+                      {/* Add more as needed */}
+                    </select>
                   </div>
                   <div className="form-actions">
                     <button type="submit" disabled={isLoading}>

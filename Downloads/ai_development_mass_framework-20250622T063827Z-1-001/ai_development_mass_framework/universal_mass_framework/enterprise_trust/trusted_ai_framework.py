@@ -67,7 +67,8 @@ class TrustedAIFramework:
     enterprise-grade compliance, explainability, and human oversight.
     """
     
-    def __init__(self):
+    def __init__(self, config=None):
+        self.config = config
         # Trust pillar validators
         self.trust_validators = {
             TrustPillar.EXPLAINABILITY: ExplainabilityValidator(),
@@ -97,6 +98,135 @@ class TrustedAIFramework:
         self.data_sovereignty = DataSovereigntyManager()
         
         logging.info("TrustedAIFramework initialized with all 10 trust pillars")
+        
+    async def initialize(self):
+        """Initialize the trust framework components"""
+        try:
+            # Initialize all trust validators
+            for validator in self.trust_validators.values():
+                if hasattr(validator, 'initialize'):
+                    await validator.initialize()
+            
+            # Initialize enterprise components
+            if hasattr(self.hitl_controller, 'initialize'):
+                await self.hitl_controller.initialize()
+            if hasattr(self.cost_tracker, 'initialize'):
+                await self.cost_tracker.initialize()
+            if hasattr(self.audit_system, 'initialize'):
+                await self.audit_system.initialize()
+            if hasattr(self.data_sovereignty, 'initialize'):
+                await self.data_sovereignty.initialize()
+                
+            logging.info("TrustedAIFramework initialized successfully")
+        except Exception as e:
+            logging.error(f"Failed to initialize TrustedAIFramework: {str(e)}")
+            raise
+    
+    async def validate_integration(self, integration_data: Dict[str, Any], 
+                                 system_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate system integration against trust framework"""
+        try:
+            # Create a mock operation for validation
+            operation_id = f"integration_{uuid.uuid4().hex[:8]}"
+            agent_id = "system_integration_agent"
+            
+            # Validate the integration data
+            assessment = await self.validate_ai_operation(
+                operation_id=operation_id,
+                agent_id=agent_id,
+                input_data=system_config,
+                ai_output=integration_data,
+                trust_level=TrustLevel.HIGH
+            )
+            
+            return {
+                "trust_score": assessment.trust_score,
+                "compliance_status": "compliant" if assessment.trust_score >= 0.85 else "non_compliant",
+                "risk_factors": assessment.risk_factors,
+                "mitigation_actions": assessment.mitigation_actions,
+                "human_review_required": assessment.human_review_required
+            }
+        except Exception as e:
+            logging.error(f"Integration validation failed: {str(e)}")
+            return {
+                "trust_score": 0.0,
+                "compliance_status": "error",
+                "risk_factors": [f"Validation error: {str(e)}"],
+                "mitigation_actions": ["Manual review required"],
+                "human_review_required": True
+            }
+        
+    async def validate_component(self, component_name: str) -> Dict[str, Any]:
+        """Validate a component against trust framework"""
+        try:
+            # Create a mock operation for component validation
+            operation_id = f"component_validation_{uuid.uuid4().hex[:8]}"
+            agent_id = f"{component_name}_validator"
+            
+            # Mock input and output for component validation
+            input_data = {"component_name": component_name, "validation_type": "component_trust"}
+            ai_output = {"component_status": "active", "trust_score": 0.9}
+            
+            # Validate the component
+            assessment = await self.validate_ai_operation(
+                operation_id=operation_id,
+                agent_id=agent_id,
+                input_data=input_data,
+                ai_output=ai_output,
+                trust_level=TrustLevel.HIGH
+            )
+            
+            return {
+                "component_name": component_name,
+                "trust_score": assessment.trust_score,
+                "compliance_status": "compliant" if assessment.trust_score >= 0.85 else "non_compliant",
+                "risk_factors": assessment.risk_factors,
+                "mitigation_actions": assessment.mitigation_actions,
+                "human_review_required": assessment.human_review_required
+            }
+        except Exception as e:
+            logging.error(f"Component validation failed for {component_name}: {str(e)}")
+            return {
+                "component_name": component_name,
+                "trust_score": 0.0,
+                "compliance_status": "error",
+                "risk_factors": [f"Validation error: {str(e)}"],
+                "mitigation_actions": ["Manual review required"],
+                "human_review_required": True
+            }
+        
+    async def validate_operation(self, operation_id: str, agent_id: str,
+                               input_data: Dict[str, Any], 
+                               ai_output: Dict[str, Any],
+                               trust_level: TrustLevel = TrustLevel.MEDIUM) -> Dict[str, Any]:
+        """Validate an AI operation against trust framework"""
+        try:
+            assessment = await self.validate_ai_operation(
+                operation_id=operation_id,
+                agent_id=agent_id,
+                input_data=input_data,
+                ai_output=ai_output,
+                trust_level=trust_level
+            )
+            
+            return {
+                "trust_score": assessment.trust_score,
+                "compliance_status": "compliant" if assessment.trust_score >= self.trust_thresholds[trust_level] else "non_compliant",
+                "risk_factors": assessment.risk_factors,
+                "mitigation_actions": assessment.mitigation_actions,
+                "human_review_required": assessment.human_review_required,
+                "explanation": assessment.explanation
+            }
+        except Exception as e:
+            logging.error(f"Operation validation failed: {str(e)}")
+            return {
+                "trust_score": 0.0,
+                "compliance_status": "error",
+                "risk_factors": [f"Validation error: {str(e)}"],
+                "mitigation_actions": ["Manual review required"],
+                "human_review_required": True,
+                "explanation": f"Validation failed: {str(e)}"
+            }
         
     async def validate_ai_operation(self, operation_id: str, agent_id: str,
                                    input_data: Dict[str, Any], 

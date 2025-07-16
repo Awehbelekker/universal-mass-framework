@@ -1,0 +1,344 @@
+groups:
+  - name: mass_framework_alerts
+    rules:
+      # Application Health Alerts
+      - alert: MassFrameworkDown
+        expr: up{job="mass-framework"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: mass-framework
+        annotations:
+          summary: "MASS Framework application is down"
+          description: "The MASS Framework application has been down for more than 1 minute"
+
+      - alert: MassFrameworkHighErrorRate
+        expr: rate(http_requests_total{job="mass-framework", status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: mass-framework
+        annotations:
+          summary: "High error rate detected in MASS Framework"
+          description: "Error rate is {{ $value }} errors per second"
+
+      - alert: MassFrameworkHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="mass-framework"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: mass-framework
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      # Trading System Alerts
+      - alert: TradingEngineDown
+        expr: up{job="mass-framework"} == 0 and on() group_left() mass_trading_engine_status == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: trading-engine
+        annotations:
+          summary: "Trading engine is down"
+          description: "The trading engine has stopped responding"
+
+      - alert: TradingWinRateLow
+        expr: mass_trading_win_rate < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: trading-engine
+        annotations:
+          summary: "Trading win rate is below threshold"
+          description: "Current win rate is {{ $value | humanizePercentage }}"
+
+      - alert: TradingLossStreak
+        expr: mass_trading_consecutive_losses > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: trading-engine
+        annotations:
+          summary: "Trading loss streak detected"
+          description: "{{ $value }} consecutive losses detected"
+
+      - alert: TradingVolumeAnomaly
+        expr: abs(rate(mass_trading_volume_total[5m]) - avg_over_time(mass_trading_volume_total[1h])) / avg_over_time(mass_trading_volume_total[1h]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: trading-engine
+        annotations:
+          summary: "Unusual trading volume detected"
+          description: "Trading volume is {{ $value | humanizePercentage }} different from average"
+
+      # AI Agent Alerts
+      - alert: AIAgentDown
+        expr: mass_ai_agent_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ai-agents
+        annotations:
+          summary: "AI agent is down"
+          description: "One or more AI agents have stopped responding"
+
+      - alert: AIAgentHighErrorRate
+        expr: rate(mass_ai_agent_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: ai-agents
+        annotations:
+          summary: "High AI agent error rate"
+          description: "AI agent error rate is {{ $value }} errors per second"
+
+      - alert: AIAgentLowPerformance
+        expr: mass_ai_agent_performance_score < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          service: ai-agents
+        annotations:
+          summary: "AI agent performance is low"
+          description: "AI agent performance score is {{ $value }}"
+
+      # Database Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has stopped responding"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High PostgreSQL connection count"
+          description: "{{ $value }} active connections to PostgreSQL"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_activity_max_tx_duration{datname!=""}[5m]) > 30
+        for: 2m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow PostgreSQL queries detected"
+          description: "Average query duration is {{ $value }} seconds"
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache has stopped responding"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisHighConnectionCount
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "High Redis connection count"
+          description: "{{ $value }} active connections to Redis"
+
+      # MongoDB Alerts
+      - alert: MongoDBDown
+        expr: up{job="mongodb"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "MongoDB is down"
+          description: "MongoDB has stopped responding"
+
+      - alert: MongoDBHighConnections
+        expr: mongodb_connections > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High MongoDB connection count"
+          description: "{{ $value }} active connections to MongoDB"
+
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}%"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}%"
+
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is {{ $value }}%"
+
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m]) > 1000000000
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High network traffic detected"
+          description: "Network traffic is {{ $value | humanize }}B/s"
+
+      # Container Alerts
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: containers
+        annotations:
+          summary: "Container high memory usage"
+          description: "Container {{ $labels.name }} memory usage is {{ $value }}%"
+
+      - alert: ContainerHighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: containers
+        annotations:
+          summary: "Container high CPU usage"
+          description: "Container {{ $labels.name }} CPU usage is {{ $value }}%"
+
+      # Application-Specific Alerts
+      - alert: WorkflowQueueBacklog
+        expr: mass_workflow_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: mass-framework
+        annotations:
+          summary: "Workflow queue backlog detected"
+          description: "{{ $value }} workflows waiting in queue"
+
+      - alert: APIKeyUsageAnomaly
+        expr: rate(mass_api_key_usage_total[5m]) > avg_over_time(mass_api_key_usage_total[1h]) * 2
+        for: 5m
+        labels:
+          severity: warning
+          service: mass-framework
+        annotations:
+          summary: "Unusual API key usage detected"
+          description: "API usage is {{ $value }} requests per second"
+
+      - alert: UserSessionAnomaly
+        expr: mass_active_user_sessions > avg_over_time(mass_active_user_sessions[1h]) * 1.5
+        for: 5m
+        labels:
+          severity: info
+          service: mass-framework
+        annotations:
+          summary: "Unusual number of active user sessions"
+          description: "{{ $value }} active user sessions"
+
+      # Security Alerts
+      - alert: FailedLoginAttempts
+        expr: rate(mass_failed_login_attempts_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "{{ $value }} failed login attempts per second"
+
+      - alert: UnauthorizedAccessAttempts
+        expr: rate(mass_unauthorized_access_attempts_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Unauthorized access attempts detected"
+          description: "{{ $value }} unauthorized access attempts per second"
+
+      # Business Logic Alerts
+      - alert: RevenueAnomaly
+        expr: abs(rate(mass_revenue_total[5m]) - avg_over_time(mass_revenue_total[1h])) / avg_over_time(mass_revenue_total[1h]) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Revenue anomaly detected"
+          description: "Revenue is {{ $value | humanizePercentage }} different from average"
+
+      - alert: UserGrowthStagnant
+        expr: rate(mass_new_users_total[1h]) < 1
+        for: 1h
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "User growth has stagnated"
+          description: "No new users in the last hour"
+
+      # Infrastructure Alerts
+      - alert: ServiceDiscoveryFailure
+        expr: up{job="docker"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Docker service discovery failure"
+          description: "Unable to discover Docker services"
+
+      - alert: LoadBalancerHealth
+        expr: up{job="nginx"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Load balancer is down"
+          description: "Nginx load balancer has stopped responding" 

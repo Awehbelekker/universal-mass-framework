@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './AIWorkflowBuilder.css';
+import BuildIcon from '@mui/icons-material/Build';
+import SettingsIcon from '@mui/icons-material/Settings';
+import SyncIcon from '@mui/icons-material/Sync';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 interface WorkflowStep {
   id: string;
@@ -160,7 +164,8 @@ const AIWorkflowBuilder: React.FC = () => {
       <div className="agent-header">
         <h4>{agent.name}</h4>
         <span className={`agent-type ${agent.type}`}>
-          {agent.type === 'ai' ? '🤖 AI' : '⚙️ Traditional'}
+          {agent.type === 'ai' ? <BuildIcon sx={{ fontSize: 16, color: 'primary.main' }} /> : <SettingsIcon sx={{ fontSize: 16, color: 'secondary.main' }} />}
+          {agent.type === 'ai' ? ' AI' : ' Traditional'}
         </span>
       </div>
       <div className="agent-capabilities">
@@ -243,6 +248,7 @@ Examples:
               disabled={loading || !naturalLanguageInput.trim()}
               className="btn btn-primary"
             >
+              {loading ? <SyncIcon sx={{ fontSize: 16, mr: 1 }} /> : <PlayArrowIcon sx={{ fontSize: 16, mr: 1 }} />}
               {loading ? 'Creating...' : 'Generate Workflow'}
             </button>
           </div>

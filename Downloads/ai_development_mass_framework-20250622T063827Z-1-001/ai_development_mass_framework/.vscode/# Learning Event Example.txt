@@ -1,0 +1,18 @@
+# Learning Event Example
+LearningEvent(
+    event_type='pattern_discovered',
+    description='Bullish trend pattern discovered for AAPL',
+    confidence_before=0.65,
+    confidence_after=0.75,
+    impact_score=0.85,
+    market_conditions={'symbol': 'AAPL', 'pattern_type': 'bullish'}
+)
+
+# Performance Metrics Example
+PerformanceMetrics(
+    portfolio_value=10500.0,
+    total_pnl=500.0,
+    sharpe_ratio=1.25,
+    win_rate=0.68,
+    learning_progress=progress_tracking
+)

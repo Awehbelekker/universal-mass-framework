@@ -1,0 +1,16 @@
+﻿{
+    "environment":  "production",
+    "deploymentSuccessful":  [
+                                 "",
+                                 "\u001b[1m\u001b[31mError:\u001b[39m\u001b[22m Failed to get Firebase project prometheus-trading. Please make sure the project exists and your account has permission to access it.",
+                                 false
+                             ],
+    "files":  {
+                  "html":  8,
+                  "total":  21,
+                  "js":  12
+              },
+    "timestamp":  "20250706-212647",
+    "buildDirectory":  "C:\\Users\\Judy\\Downloads\\ai_development_mass_framework-20250622T063827Z-1-001\\ai_development_mass_framework/build",
+    "healthChecksPassed":  false
+}

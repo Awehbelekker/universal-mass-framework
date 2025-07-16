@@ -4,30 +4,11 @@
 # Prometheus Configuration
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
   external_labels:
-    environment: staging
-    project: mass-framework
+    cluster: 'mass-framework'
+    environment: 'production'
 
-scrape_configs:
-  - job_name: 'mass-engine'
-    static_configs:
-      - targets: ['mass-engine:8000']
-    metrics_path: /metrics
-    scrape_interval: 10s
-
-  - job_name: 'data-processors'
-    static_configs:
-      - targets: ['data-processors:8001']
-    metrics_path: /metrics
-    scrape_interval: 10s
-
-  - job_name: 'intelligence-agents'
-    static_configs:
-      - targets: ['intelligence-agents:8002']
-    metrics_path: /metrics
-    scrape_interval: 10s
-
-# Alert Rules
 rule_files:
   - "alert_rules.yml"
 
@@ -36,3 +17,139 @@ alerting:
     - static_configs:
         - targets:
           - alertmanager:9093
+
+scrape_configs:
+  # MASS Framework Application
+  - job_name: 'mass-framework'
+    static_configs:
+      - targets: ['mass-framework:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  # PostgreSQL Database
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # MongoDB
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['mongodb:27017']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Nginx
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/nginx_status'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # cAdvisor (Container Metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Elasticsearch
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: '/_prometheus/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Grafana
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+# Service Discovery for Docker Swarm
+  - job_name: 'docker'
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        port: 2375
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_docker_container_label_com_docker_swarm_service_name]
+        target_label: service
+      - source_labels: [__meta_docker_container_name]
+        target_label: container
+      - source_labels: [__meta_docker_container_network_mode]
+        target_label: network_mode
+
+# Custom MASS Framework Metrics
+  - job_name: 'mass-framework-custom'
+    static_configs:
+      - targets: ['mass-framework:8000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 5s
+    honor_labels: true
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'mass_(.+)'
+        target_label: metric_type
+        replacement: '${1}'
+      - source_labels: [__name__]
+        regex: 'trading_(.+)'
+        target_label: metric_category
+        replacement: 'trading'
+      - source_labels: [__name__]
+        regex: 'ai_(.+)'
+        target_label: metric_category
+        replacement: 'ai'
+      - source_labels: [__name__]
+        regex: 'system_(.+)'
+        target_label: metric_category
+        replacement: 'system'
+
+# Blackbox Exporter for HTTP Health Checks
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://mass-framework:8000/health
+        - http://nginx:80/health
+        - http://grafana:3000/api/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115

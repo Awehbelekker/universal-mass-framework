@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
-from ...core.config_manager import MassConfig
+from universal_mass_framework.core.config_manager import MassConfig
 
 logger = logging.getLogger(__name__)
 

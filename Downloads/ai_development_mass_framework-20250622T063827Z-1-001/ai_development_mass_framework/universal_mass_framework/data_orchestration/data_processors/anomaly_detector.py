@@ -148,8 +148,9 @@ class AnomalyDetectionEngine:
     - Impact assessment and prioritization
     """
     
-    def __init__(self):
+    def __init__(self, config=None):
         """Initialize the anomaly detection engine"""
+        self.config = config
         self.anomaly_history = []
         self.detection_models = {}
         self.thresholds = defaultdict(dict)
@@ -961,3 +962,5 @@ class AnomalyDetectionEngine:
 
 # Export the main classes
 __all__ = ['AnomalyDetectionEngine', 'AnomalyDetection', 'AnomalyPattern', 'AnomalyType', 'AnomalySeverity', 'DetectionMethod']
+
+AnomalyDetector = AnomalyDetectionEngine

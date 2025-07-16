@@ -106,8 +106,9 @@ class DataCorrelationEngine:
     - Correlation-based predictions
     """
     
-    def __init__(self):
+    def __init__(self, config=None):
         """Initialize the correlation engine"""
+        self.config = config
         self.correlation_cache = {}
         self.correlation_history = []
         self.correlation_patterns = {}

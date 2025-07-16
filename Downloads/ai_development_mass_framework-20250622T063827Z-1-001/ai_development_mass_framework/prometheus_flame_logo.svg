@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600">
+  <defs>
+    <linearGradient id="flame-gradient-main" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE55C" />
+      <stop offset="25%" stop-color="#FFB84D" />
+      <stop offset="50%" stop-color="#FF9D41" />
+      <stop offset="75%" stop-color="#FF7A2F" />
+      <stop offset="100%" stop-color="#FF5E3A" />
+    </linearGradient>
+    <linearGradient id="flame-gradient-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2CC" />
+      <stop offset="30%" stop-color="#FFD700" />
+      <stop offset="60%" stop-color="#FFB84D" />
+      <stop offset="100%" stop-color="#FF9D41" />
+    </linearGradient>
+    <linearGradient id="flame-gradient-highlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" opacity="0.8"/>
+      <stop offset="50%" stop-color="#FFE55C" opacity="0.6"/>
+      <stop offset="100%" stop-color="#FFB84D" opacity="0.3"/>
+    </linearGradient>
+    <filter id="glow-effect">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main flame body -->
+  <path d="M200 100 
+           C180 120, 140 180, 160 240 
+           C120 300, 140 380, 180 440 
+           C140 480, 160 520, 200 540
+           C240 520, 260 480, 220 440
+           C260 380, 280 300, 240 240
+           C260 180, 220 120, 200 100 Z" 
+        fill="url(#flame-gradient-main)" 
+        filter="url(#glow-effect)"/>
+  
+  <!-- Inner flame -->
+  <path d="M200 140
+           C190 160, 170 200, 185 240
+           C165 280, 180 320, 200 350
+           C220 320, 235 280, 215 240
+           C230 200, 210 160, 200 140 Z" 
+        fill="url(#flame-gradient-inner)"/>
+  
+  <!-- Highlight -->
+  <path d="M200 150
+           C195 170, 180 200, 190 230
+           C185 250, 190 270, 200 285
+           C210 270, 215 250, 210 230
+           C220 200, 205 170, 200 150 Z" 
+        fill="url(#flame-gradient-highlight)"/>
+  
+  <!-- Animated glow -->
+  <circle cx="200" cy="300" r="150" fill="none" stroke="#FF9D41" stroke-width="2" opacity="0.3">
+    <animate attributeName="r" values="150;170;150" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite"/>
+  </circle>
+</svg>
