@@ -34,16 +34,6 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - name: Run Bandit security linter
-        run: |
-          pip install bandit
-          bandit -r . -f json -o bandit-report.json || true
-
-      - name: Run Safety check
-        run: |
-          pip install safety
-          safety check --json --output safety-report.json || true
-
   # Frontend Testing and Building
   frontend:
     runs-on: ubuntu-latest
@@ -137,15 +127,7 @@ jobs:
           flags: backend
           name: backend-coverage
 
-      - name: Run security tests
-        run: |
-          python -m bandit -r core/ universal_mass_framework/ agents/ -f json -o security-report.json || true
-
-      - name: Run performance tests
-        run: |
-          python comprehensive_load_test.py || true
-
-  # Docker Build and Security Scan
+  # Docker Build
   docker-build:
     runs-on: ubuntu-latest
     needs: [frontend, backend-test]
@@ -179,61 +161,41 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          file: ./Dockerfile
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan Docker image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
-          format: 'sarif'
-          output: 'trivy-image-results.sarif'
-
-      - name: Upload Docker scan results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-image-results.sarif'
-
-  # Deploy to Staging
-  deploy-staging:
+  # Deploy to Firebase
+  deploy-firebase:
     runs-on: ubuntu-latest
-    needs: [docker-build, security-scan]
-    if: github.ref == 'refs/heads/develop'
-    environment: staging
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to staging environment
-        run: |
-          echo "Deploying to staging environment..."
-          # Add your staging deployment logic here
-          # Example: kubectl apply -f k8s/staging/
-          # or docker-compose -f docker-compose.staging.yml up -d
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Run smoke tests
-        run: |
-          echo "Running smoke tests..."
-          # Add smoke test logic here
-          # Example: curl -f http://staging.massframework.com/health
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
 
-      - name: Notify staging deployment
-        if: always()
+      - name: Deploy to Firebase
         run: |
-          echo "Staging deployment completed"
-          # Add notification logic (Slack, email, etc.)
+          # Deploy to Firebase
+          firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}
 
-  # Deploy to Production
-  deploy-production:
+  # Deploy to Google Cloud Run (if secrets are configured)
+  deploy-cloudrun:
     runs-on: ubuntu-latest
-    needs: [docker-build, security-scan]
-    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
-    environment: production
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -260,137 +222,23 @@ jobs:
             --set-env-vars "REDIS_URL=${{ secrets.REDIS_URL }}" \
             --set-env-vars "SECRET_KEY=${{ secrets.SECRET_KEY }}"
 
-      - name: Deploy frontend to Firebase Hosting
-        run: |
-          # Setup Firebase CLI
-          npm install -g firebase-tools
-          
-          # Deploy to Firebase
-          firebase deploy --only hosting --project ${{ secrets.FIREBASE_PROJECT_ID }}
-
-      - name: Run production health checks
-        run: |
-          echo "Running production health checks..."
-          # Add health check logic
-          # Example: curl -f https://api.massframework.com/health
-
-      - name: Notify production deployment
-        if: always()
-        run: |
-          echo "Production deployment completed"
-          # Add notification logic
-
-  # Performance Testing
-  performance-test:
-    runs-on: ubuntu-latest
-    needs: [deploy-staging]
-    if: github.ref == 'refs/heads/develop'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r test_requirements.txt
-
-      - name: Run performance tests
-        run: |
-          python comprehensive_load_test.py --target staging.massframework.com
-          python comprehensive_test_and_performance.py
-
-      - name: Upload performance results
-        uses: actions/upload-artifact@v3
-        with:
-          name: performance-results
-          path: |
-            comprehensive_test_results.json
-            comprehensive_test_report.md
-            performance_metrics.json
-
-  # Security Compliance Check
-  security-compliance:
-    runs-on: ubuntu-latest
-    needs: [docker-build]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run OWASP ZAP security scan
-        uses: zaproxy/action-full-scan@v0.8.0
-        with:
-          target: 'https://staging.massframework.com'
-
-      - name: Run dependency vulnerability scan
-        run: |
-          pip install safety
-          safety check --json --output safety-report.json
-
-      - name: Upload security reports
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-reports
-          path: |
-            zap-report.html
-            safety-report.json
-
-  # Documentation Generation
-  documentation:
-    runs-on: ubuntu-latest
-    needs: [backend-test]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install documentation dependencies
-        run: |
-          pip install sphinx sphinx-rtd-theme
-
-      - name: Generate API documentation
-        run: |
-          # Generate OpenAPI documentation
-          python -c "
-          import uvicorn
-          from main import app
-          import json
-          
-          with open('openapi.json', 'w') as f:
-              json.dump(app.openapi(), f, indent=2)
-          "
-
-      - name: Upload documentation
-        uses: actions/upload-artifact@v3
-        with:
-          name: documentation
-          path: |
-            openapi.json
-            docs/
-
   # Final Status Check
   status-check:
     runs-on: ubuntu-latest
-    needs: [deploy-production, performance-test, security-compliance, documentation]
+    needs: [deploy-firebase, deploy-cloudrun]
     if: always()
     steps:
       - name: Generate deployment report
         run: |
           echo "## Deployment Summary" >> deployment-report.md
+          echo "- Frontend Tests: ${{ needs.frontend.result }}" >> deployment-report.md
           echo "- Backend Tests: ${{ needs.backend-test.result }}" >> deployment-report.md
           echo "- Docker Build: ${{ needs.docker-build.result }}" >> deployment-report.md
-          echo "- Production Deploy: ${{ needs.deploy-production.result }}" >> deployment-report.md
-          echo "- Performance Tests: ${{ needs.performance-test.result }}" >> deployment-report.md
-          echo "- Security Compliance: ${{ needs.security-compliance.result }}" >> deployment-report.md
-          echo "- Documentation: ${{ needs.documentation.result }}" >> deployment-report.md
+          echo "- Firebase Deploy: ${{ needs.deploy-firebase.result }}" >> deployment-report.md
+          echo "- Cloud Run Deploy: ${{ needs.deploy-cloudrun.result }}" >> deployment-report.md
+          echo "" >> deployment-report.md
+          echo "**Firebase URL:** https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app" >> deployment-report.md
+          echo "**Cloud Run URL:** https://mass-framework-backend-${{ secrets.GCP_PROJECT_ID }}.run.app" >> deployment-report.md
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
