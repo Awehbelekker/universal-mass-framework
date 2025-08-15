@@ -1,4 +1,4 @@
-name: MASS Framework - Firebase Deployment
+name: CI/CD Pipeline for MASS Framework
 
 on:
   push:
@@ -122,10 +122,10 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  # Deploy to Firebase
-  deploy-firebase:
+  # Deploy Frontend to Firebase
+  deploy-frontend:
     runs-on: ubuntu-latest
-    needs: [frontend, backend-test, security-scan]
+    needs: [frontend, security-scan]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
       - name: Checkout code
@@ -151,10 +151,42 @@ jobs:
           sleep 30
           curl -f https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app/ || true
 
+  # Deploy Backend to Cloud Run
+  deploy-backend:
+    runs-on: ubuntu-latest
+    needs: [backend-test, security-scan]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Build and push Docker image
+        run: |
+          gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/mass-backend .
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy mass-backend \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/mass-backend \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --port 8080
+
   # Final Status Check
   status-check:
     runs-on: ubuntu-latest
-    needs: [deploy-firebase]
+    needs: [deploy-frontend, deploy-backend]
     if: always()
     steps:
       - name: Generate deployment report
@@ -166,15 +198,16 @@ jobs:
           echo "**Branch:** ${{ github.ref_name }}" >> deployment-report.md
           echo "**Commit:** ${{ github.sha }}" >> deployment-report.md
           echo "" >> deployment-report.md
-          echo "### Test Results:" >> deployment-report.md
+          echo "### Job Status:" >> deployment-report.md
           echo "- Frontend Tests: ${{ needs.frontend.result }}" >> deployment-report.md
           echo "- Backend Tests: ${{ needs.backend-test.result }}" >> deployment-report.md
           echo "- Security Scan: ${{ needs.security-scan.result }}" >> deployment-report.md
-          echo "- Firebase Deploy: ${{ needs.deploy-firebase.result }}" >> deployment-report.md
+          echo "- Frontend Deploy (Firebase): ${{ needs.deploy-frontend.result }}" >> deployment-report.md
+          echo "- Backend Deploy (Cloud Run): ${{ needs.deploy-backend.result }}" >> deployment-report.md
           echo "" >> deployment-report.md
           echo "### Deployment URLs:" >> deployment-report.md
-          echo "- **Firebase Hosting:** https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app" >> deployment-report.md
-          echo "- **Firebase Functions:** https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app/api" >> deployment-report.md
+          echo "- **Frontend (Firebase Hosting):** https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app" >> deployment-report.md
+          echo "- **Backend (Cloud Run):** $(gcloud run services describe mass-backend --platform managed --region us-central1 --format 'value(status.url)')" >> deployment-report.md
           echo "" >> deployment-report.md
           echo "### Next Steps:" >> deployment-report.md
           echo "1. Test the deployed application" >> deployment-report.md
