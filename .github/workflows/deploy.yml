@@ -1,202 +1,102 @@
-name: MASS Framework - Firebase Deployment
+# MASS Backend — CI/CD Pipeline
+#
+# Jobs:
+#   test   — runs on every push and PR; required to pass before deploy
+#   deploy — runs only on pushes to main after test passes
+#
+# Required GitHub repository secrets (Settings > Secrets and variables > Actions):
+#   GCP_PROJECT_ID                — GCP project ID (e.g. my-project-123456)
+#   GCP_WORKLOAD_IDENTITY_PROVIDER — Full WIF provider resource name:
+#                                    projects/PROJECT_NUMBER/locations/global/
+#                                    workloadIdentityPools/POOL_ID/providers/PROVIDER_ID
+#   GCP_SERVICE_ACCOUNT           — SA email: mass-deploy@PROJECT_ID.iam.gserviceaccount.com
+#
+# Required GitHub repository variables (Settings > Secrets and variables > Variables):
+#   GCP_REGION  — Cloud Run region (e.g. us-central1). Defaults to us-central1.
+#
+# One-time GCP Workload Identity setup:
+#   gcloud iam workload-identity-pools create "github-pool" --location="global" \
+#     --display-name="GitHub Actions Pool"
+#
+#   gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+#     --location="global" --workload-identity-pool="github-pool" \
+#     --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+#     --issuer-uri="https://token.actions.githubusercontent.com"
+#
+#   gcloud iam service-accounts add-iam-policy-binding \
+#     mass-deploy@PROJECT_ID.iam.gserviceaccount.com \
+#     --role="roles/iam.workloadIdentityUser" \
+#     --member="principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/attribute.repository/Awehbelekker/universal-mass-framework"
+
+name: CI/CD — MASS Backend
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write   # Required for Workload Identity Federation OIDC token exchange
 
 jobs:
-  # Frontend Testing and Building
-  frontend:
+  # ── Test gate ─────────────────────────────────────────────────────────────
+  test:
+    name: Test
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          version: "latest"
 
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: npm ci
+      - name: Set up Python 3.12
+        run: uv python install 3.12
 
-      - name: Run frontend tests
-        working-directory: ./frontend
-        run: npm test -- --coverage --watchAll=false
+      - name: Install dependencies (including dev extras)
+        run: uv sync --frozen --extra dev
 
-      - name: Run frontend linting
-        working-directory: ./frontend
-        run: npm run lint || true
+      - name: Run tests
+        run: uv run pytest tests/ -v --tb=short
 
-      - name: Build frontend
-        working-directory: ./frontend
-        run: npm run build
-
-      - name: Upload frontend build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend-build
-          path: frontend/build/
-
-  # Backend Testing
-  backend-test:
+  # ── Deploy (main branch only, after tests pass) ───────────────────────────
+  deploy:
+    name: Deploy to Cloud Run
+    needs: test
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Authenticate to Google Cloud via Workload Identity Federation
+        uses: google-github-actions/auth@v2
         with:
-          python-version: '3.11'
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Install Python dependencies
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push Docker image via Cloud Build
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r test_requirements.txt
+          gcloud builds submit \
+            --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/mass-backend \
+            --project ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Run backend tests
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          TESTING: true
+      - name: Deploy to Cloud Run
         run: |
-          pytest tests/ -v --cov=core --cov=universal_mass_framework --cov-report=xml --cov-report=html
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-          flags: backend
-          name: backend-coverage
-
-  # Security Scan
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  # Deploy to Firebase
-  deploy-firebase:
-    runs-on: ubuntu-latest
-    needs: [frontend, backend-test, security-scan]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Deploy to Firebase
-        run: |
-          # Deploy to Firebase
-          firebase deploy --only hosting
-
-      - name: Run smoke tests
-        run: |
-          echo "Running smoke tests..."
-          # Test the deployed app
-          sleep 30
-          curl -f https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app/ || true
-
-  # Final Status Check
-  status-check:
-    runs-on: ubuntu-latest
-    needs: [deploy-firebase]
-    if: always()
-    steps:
-      - name: Generate deployment report
-        run: |
-          echo "## MASS Framework Deployment Summary" >> deployment-report.md
-          echo "" >> deployment-report.md
-          echo "**Deployment Date:** $(date)" >> deployment-report.md
-          echo "**Repository:** ${{ github.repository }}" >> deployment-report.md
-          echo "**Branch:** ${{ github.ref_name }}" >> deployment-report.md
-          echo "**Commit:** ${{ github.sha }}" >> deployment-report.md
-          echo "" >> deployment-report.md
-          echo "### Test Results:" >> deployment-report.md
-          echo "- Frontend Tests: ${{ needs.frontend.result }}" >> deployment-report.md
-          echo "- Backend Tests: ${{ needs.backend-test.result }}" >> deployment-report.md
-          echo "- Security Scan: ${{ needs.security-scan.result }}" >> deployment-report.md
-          echo "- Firebase Deploy: ${{ needs.deploy-firebase.result }}" >> deployment-report.md
-          echo "" >> deployment-report.md
-          echo "### Deployment URLs:" >> deployment-report.md
-          echo "- **Firebase Hosting:** https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app" >> deployment-report.md
-          echo "- **Firebase Functions:** https://$(firebase projects:list --json | jq -r '.result[0].projectId').web.app/api" >> deployment-report.md
-          echo "" >> deployment-report.md
-          echo "### Next Steps:" >> deployment-report.md
-          echo "1. Test the deployed application" >> deployment-report.md
-          echo "2. Monitor application performance" >> deployment-report.md
-          echo "3. Set up monitoring and alerting" >> deployment-report.md
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('deployment-report.md', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: report
-            });
-
-      - name: Upload deployment report
-        uses: actions/upload-artifact@v3
-        with:
-          name: deployment-report
-          path: deployment-report.md 
+          gcloud run deploy mass-backend \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/mass-backend \
+            --platform managed \
+            --region ${{ vars.GCP_REGION || 'us-central1' }} \
+            --port 8080 \
+            --no-allow-unauthenticated \
+            --set-env-vars MASS_ENV=production \
+            --project ${{ secrets.GCP_PROJECT_ID }}

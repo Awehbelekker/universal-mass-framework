@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "mass": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "-m",
+        "mass.mcp_server"
+      ],
+      "env": {
+        "MASS_ENV": "development",
+        "LITELLM_MODEL": "gpt-4o-mini"
+      }
+    }
+  }
+}
+

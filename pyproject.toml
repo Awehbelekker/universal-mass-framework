@@ -1,0 +1,39 @@
+[project]
+name = "mass-backend"
+version = "0.2.0"
+description = "The jQuery of AI — Universal Multi-Agent System Search Framework"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "httpx>=0.27.0",
+    "langgraph>=1.1.3",
+    "litellm>=1.82.0",
+    "mcp>=1.26.0",
+]
+
+[project.scripts]
+mass-ingest = "mass.ingest:ingest"
+mass-ingest-store = "mass.ingest_store:ingest"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mass"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
