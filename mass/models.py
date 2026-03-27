@@ -53,7 +53,10 @@ class SearchResponse(BaseModel):
     )
     intent: str | None = Field(
         default=None,
-        description="Classified intent of the query (search | product | order | action | web)",
+        description=(
+            "Classified intent of the query "
+            "(search | product | order | action | web | competitive)"
+        ),
     )
     agent_trace: list[str] = Field(
         default_factory=list,

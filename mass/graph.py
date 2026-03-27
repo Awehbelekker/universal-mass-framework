@@ -126,13 +126,19 @@ def receive_query_node(state: MASSState) -> dict[str, Any]:
 
     Strips whitespace and initialises state fields so every downstream node
     can safely read them without KeyError.
+
+    If ``intent`` is already set in the incoming state (e.g. the
+    ``/intelligence`` endpoint pre-sets ``'competitive'``), it is preserved
+    so ``classify_intent_node`` can skip classification entirely.
     """
     cleaned_query = state["query"].strip()
+    # Preserve a caller-supplied intent (e.g. "competitive" from /intelligence)
+    existing_intent = state.get("intent")
     return {
         "query": cleaned_query,
         "results": [],
         "synthesis": None,
-        "intent": None,
+        "intent": existing_intent,  # None resets; non-None is kept
         "model": settings.litellm_model,
         "agent_trace": ["receive_query"],
     }
@@ -143,28 +149,38 @@ def receive_query_node(state: MASSState) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 _INTENT_SYSTEM_PROMPT = """\
-You are an intent classifier for MASS, a universal AI intelligence layer.
+You are an intent classifier for MASS, the AI intelligence layer powering
+Awake (a surf/outdoor store) and DIGG (a content platform).
 
 Classify the user query into EXACTLY ONE of these intents:
 
-  search   – general knowledge, how-to, information lookup, definitions
-  product  – product details, availability, pricing, sizing, specifications
-  order    – order status, tracking, returns, delivery, invoices
-  action   – create, update, delete, book, schedule, submit (requires an action)
-  web      – needs live/real-time data only available on the internet
+  search      – general knowledge, how-to, information lookup, definitions
+  product     – product details, availability, pricing, sizing, specifications
+  order       – order status, tracking, returns, delivery, invoices
+  action      – create, update, delete, book, schedule, submit (requires an action)
+  web         – needs live/real-time data only available on the internet
+  competitive – owner asking about competitor pricing, market position, or cost moat
 
 Reply with a single lowercase word — nothing else."""
 
-_VALID_INTENTS = {"search", "product", "order", "action", "web"}
+_VALID_INTENTS = {"search", "product", "order", "action", "web", "competitive"}
 
 
 async def classify_intent_node(state: MASSState) -> dict[str, Any]:
     """Classify the query intent using a fast LiteLLM call.
 
+    If ``intent`` is already set (e.g. pre-set by the ``/intelligence``
+    endpoint), classification is skipped and the existing value is kept.
+
     Uses a cheap, fast model (gpt-4o-mini by default) to keep latency low.
     Falls back to ``search`` if the LLM is unavailable or returns an
     unrecognised label — ensuring the graph always continues.
     """
+    # Skip classification if the caller already pinned an intent
+    if state.get("intent") in _VALID_INTENTS:
+        logger.info("Intent pre-set to %r — skipping classifier.", state["intent"])
+        return {"agent_trace": ["classify_intent"]}
+
     query = state["query"]
     try:
         response = await litellm.acompletion(
@@ -196,6 +212,8 @@ def _route_intent(state: MASSState) -> str:
         return "retrieve"
     if intent == "action":
         return "action_agent"
+    if intent == "competitive":
+        return "competitive_intel"
     # web (and any unknown fallback)
     return "web_search"
 
@@ -310,6 +328,183 @@ async def web_search_node(state: MASSState) -> dict[str, Any]:
             }
         ],
         "agent_trace": ["web_search"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Competitive Intelligence Node (Move 6)
+# ---------------------------------------------------------------------------
+
+_JINA_READER_URL = "https://r.jina.ai/"
+
+_COMPETITIVE_SYSTEM_PROMPT = """\
+You are MASS Competitive Intelligence — an AI advisor for business owners.
+
+You will receive:
+1. The owner's question about their product/market.
+2. Scraped content from competitor websites.
+
+Produce a concise competitive analysis covering:
+- **Price position**: how the owner's pricing compares (cheaper / parity / premium).
+- **Moat factors**: what makes the owner's offering uniquely valuable.
+- **Recommendation**: hold price / adjust / reframe the value proposition.
+
+Be specific. If prices are visible in the content, quote them. Keep the report under 400 words."""
+
+
+async def _scrape_url_with_jina(url: str, client: httpx.AsyncClient) -> str | None:
+    """Fetch a URL via the Jina AI Reader and return plain-text markdown.
+
+    Returns ``None`` on failure so callers can fall back to search snippets.
+    """
+    headers: dict[str, str] = {"Accept": "text/plain"}
+    if settings.jina_api_key:
+        headers["Authorization"] = f"Bearer {settings.jina_api_key}"
+    try:
+        resp = await client.get(
+            f"{_JINA_READER_URL}{url}",
+            headers=headers,
+            timeout=15.0,
+            follow_redirects=True,
+        )
+        resp.raise_for_status()
+        return resp.text[:6000]  # cap at 6 k chars to keep token budget sane
+    except Exception as exc:
+        logger.warning("Jina scrape failed for %s (%s).", url, exc)
+        return None
+
+
+async def competitive_intel_node(state: MASSState) -> dict[str, Any]:
+    """Owner-facing competitive intelligence node.
+
+    Pipeline:
+    1. Run a price-focused web search (Brave → Serper → stub).
+    2. Scrape the top 3 competitor pages via Jina AI Reader.
+    3. Send scraped markdown + owner query to the LLM for a structured diff.
+    4. Return a structured competitive analysis result.
+
+    Falls back gracefully at every step — the graph always reaches
+    ``synthesize_node`` even without API keys.
+    """
+    query = state["query"]
+    max_search = 3  # Only need a handful of competitor pages
+    logger.info("Competitive intel triggered for query: %r", query)
+
+    # ── 1. Collect competitor search results ──────────────────────────────────
+    search_results: list[dict[str, Any]] = []
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        price_query = f"{query} price buy"
+
+        if settings.brave_api_key:
+            try:
+                resp = await client.get(
+                    _BRAVE_SEARCH_URL,
+                    headers={
+                        "Accept": "application/json",
+                        "Accept-Encoding": "gzip",
+                        "X-Subscription-Token": settings.brave_api_key,
+                    },
+                    params={"q": price_query, "count": max_search},
+                )
+                resp.raise_for_status()
+                for item in resp.json().get("web", {}).get("results", []):
+                    search_results.append({
+                        "url": item.get("url", ""),
+                        "snippet": item.get("description") or item.get("title", ""),
+                    })
+            except Exception as exc:
+                logger.warning("Brave search failed for competitive intel (%s).", exc)
+
+        if not search_results and settings.serper_api_key:
+            try:
+                resp = await client.post(
+                    _SERPER_SEARCH_URL,
+                    headers={"X-API-KEY": settings.serper_api_key, "Content-Type": "application/json"},
+                    json={"q": price_query, "num": max_search},
+                )
+                resp.raise_for_status()
+                for item in resp.json().get("organic", []):
+                    search_results.append({
+                        "url": item.get("link", ""),
+                        "snippet": item.get("snippet", ""),
+                    })
+            except Exception as exc:
+                logger.warning("Serper search failed for competitive intel (%s).", exc)
+
+        # ── 2. Scrape top pages with Jina ─────────────────────────────────────
+        scraped_pages: list[str] = []
+        for hit in search_results[:max_search]:
+            url = hit.get("url", "")
+            if not url:
+                continue
+            page_text = await _scrape_url_with_jina(url, client)
+            if page_text:
+                scraped_pages.append(f"### Source: {url}\n\n{page_text}")
+            else:
+                # Fall back to the search snippet
+                scraped_pages.append(f"### Source: {url}\n\n{hit.get('snippet', '')}")
+
+    # ── Stub when no data is available ───────────────────────────────────────
+    if not scraped_pages:
+        logger.info("Competitive intel stub — no web data available for: %r", query)
+        return {
+            "results": [
+                {
+                    "content": (
+                        f"[COMPETITIVE INTEL STUB] Analysis for: {query!r}. "
+                        "Set BRAVE_API_KEY or SERPER_API_KEY to enable real-time "
+                        "competitor discovery. JINA_API_KEY improves full-page scraping."
+                    ),
+                    "source": "competitive-stub",
+                    "score": 1.0,
+                    "metadata": {"intent": "competitive", "mode": "stub"},
+                }
+            ],
+            "agent_trace": ["competitive_intel"],
+        }
+
+    # ── 3. LLM competitive analysis ───────────────────────────────────────────
+    competitor_context = "\n\n---\n\n".join(scraped_pages)
+    messages = [
+        {"role": "system", "content": _COMPETITIVE_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                f"Owner question: {query}\n\n"
+                f"Competitor content:\n\n{competitor_context}"
+            ),
+        },
+    ]
+
+    try:
+        response = await litellm.acompletion(
+            model=state.get("model") or settings.litellm_model,
+            messages=messages,
+            max_tokens=600,
+        )
+        analysis: str = response.choices[0].message.content or ""
+    except Exception as exc:
+        logger.warning("LiteLLM competitive analysis failed (%s).", exc)
+        analysis = (
+            f"[COMPETITIVE INTEL] Scraped {len(scraped_pages)} competitor page(s) "
+            f"for '{query}'. LLM analysis unavailable — set a valid API key."
+        )
+
+    return {
+        "results": [
+            {
+                "content": analysis,
+                "source": "competitive-intel",
+                "score": 1.0,
+                "metadata": {
+                    "intent": "competitive",
+                    "sources_scraped": len(scraped_pages),
+                    "competitor_urls": [h.get("url", "") for h in search_results[:max_search]],
+                },
+            }
+        ],
+        "agent_trace": ["competitive_intel"],
     }
 
 
@@ -686,13 +881,13 @@ def build_graph() -> CompiledStateGraph:
               │
         classify_intent
               │
-        ┌─────┴──────────────┬─────────────┐
-        ▼                    ▼             ▼
-      retrieve          action_agent   web_search
-        │                    │             │
-        └───────────┬─────────┘             │
-                    ▼                       │
-               synthesize  ◄────────────────┘
+        ┌─────┴──────────────┬─────────────┬──────────────────┐
+        ▼                    ▼             ▼                  ▼
+      retrieve          action_agent   web_search   competitive_intel
+        │                    │             │                  │
+        └───────────┬─────────┘             └──────┬──────────┘
+                    ▼                              ▼
+               synthesize  ◄──────────────────────┘
                     │
                    END
 
@@ -707,6 +902,7 @@ def build_graph() -> CompiledStateGraph:
     builder.add_node("retrieve", retrieve_node)
     builder.add_node("action_agent", action_agent_node)
     builder.add_node("web_search", web_search_node)
+    builder.add_node("competitive_intel", competitive_intel_node)
     builder.add_node("synthesize", synthesize_node)
 
     # ── Wire edges ───────────────────────────────────────────────────────────
@@ -721,6 +917,7 @@ def build_graph() -> CompiledStateGraph:
             "retrieve": "retrieve",
             "action_agent": "action_agent",
             "web_search": "web_search",
+            "competitive_intel": "competitive_intel",
         },
     )
 
@@ -728,6 +925,7 @@ def build_graph() -> CompiledStateGraph:
     builder.add_edge("retrieve", "synthesize")
     builder.add_edge("action_agent", "synthesize")
     builder.add_edge("web_search", "synthesize")
+    builder.add_edge("competitive_intel", "synthesize")
     builder.add_edge("synthesize", END)
 
     return builder.compile()

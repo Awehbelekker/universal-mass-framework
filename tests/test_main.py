@@ -332,7 +332,7 @@ async def test_intent_field_in_response(client: AsyncClient):
     response = await client.post("/search", json={"query": "what is MASS?"})
     data = response.json()
     assert "intent" in data
-    assert data["intent"] in ("search", "product", "order", "action", "web", None)
+    assert data["intent"] in ("search", "product", "order", "action", "web", "competitive", None)
 
 
 @pytest.mark.asyncio
@@ -630,4 +630,159 @@ async def test_action_agent_graceful_on_llm_error(client: AsyncClient):
     assert "synthesize" in data["agent_trace"]
     assert data["results"][0]["source"] == "action-agent"
     assert data["results"][0]["score"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Move 6: Competitive Intelligence Node
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_intent_routes_competitive_to_competitive_intel(client: AsyncClient):
+    """When classify_intent returns 'competitive', competitive_intel must run."""
+    classify_resp = _make_litellm_response("competitive")
+    synth_resp = _make_litellm_response("Competitive analysis done.")
+
+    with (
+        patch("mass.graph.litellm.acompletion", new=AsyncMock(side_effect=[classify_resp, synth_resp])),
+        patch("mass.graph.settings.brave_api_key", ""),
+        patch("mass.graph.settings.serper_api_key", ""),
+    ):
+        response = await client.post("/search", json={"query": "how does our wetsuit price compare?"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "competitive_intel" in data["agent_trace"]
+    assert "retrieve" not in data["agent_trace"]
+    assert "web_search" not in data["agent_trace"]
+    assert data["intent"] == "competitive"
+
+
+@pytest.mark.asyncio
+async def test_competitive_intel_stub_without_api_keys(client: AsyncClient):
+    """competitive_intel_node must return a stub result when no web API keys are set."""
+    classify_resp = _make_litellm_response("competitive")
+    synth_resp = _make_litellm_response("Stub competitive synthesis.")
+
+    with (
+        patch("mass.graph.litellm.acompletion", new=AsyncMock(side_effect=[classify_resp, synth_resp])),
+        patch("mass.graph.settings.brave_api_key", ""),
+        patch("mass.graph.settings.serper_api_key", ""),
+    ):
+        response = await client.post("/search", json={"query": "wetsuit competitor prices"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "competitive_intel" in data["agent_trace"]
+    assert data["results"][0]["source"] == "competitive-stub"
+    assert data["results"][0]["metadata"]["mode"] == "stub"
+
+
+@pytest.mark.asyncio
+async def test_competitive_intel_with_brave_and_jina(client: AsyncClient):
+    """competitive_intel_node must scrape Jina pages when Brave returns results."""
+    classify_resp = _make_litellm_response("competitive")
+    intel_resp = _make_litellm_response("Competitor charges R4500; you are R200 cheaper.")
+    synth_resp = _make_litellm_response("Price advantage confirmed.")
+
+    brave_payload = {
+        "web": {
+            "results": [
+                {"title": "Wetsuit Shop", "description": "Buy wetsuits from R3000", "url": "https://competitor.com/wetsuits"},
+            ]
+        }
+    }
+    mock_brave_http = MagicMock()
+    mock_brave_http.json.return_value = brave_payload
+    mock_brave_http.raise_for_status = MagicMock()
+
+    mock_jina_http = MagicMock()
+    mock_jina_http.text = "# Wetsuit prices\n3/2mm wetsuit: R4500\n5/4mm wetsuit: R5800"
+    mock_jina_http.raise_for_status = MagicMock()
+
+    mock_client_instance = AsyncMock()
+    mock_client_instance.__aenter__ = AsyncMock(return_value=mock_client_instance)
+    mock_client_instance.__aexit__ = AsyncMock(return_value=False)
+    mock_client_instance.get = AsyncMock(side_effect=[mock_brave_http, mock_jina_http])
+
+    with (
+        patch("mass.graph.litellm.acompletion", new=AsyncMock(side_effect=[classify_resp, intel_resp, synth_resp])),
+        patch("mass.graph.settings.brave_api_key", "test-brave-key"),
+        patch("mass.graph.settings.serper_api_key", ""),
+        patch("mass.graph.httpx.AsyncClient", return_value=mock_client_instance),
+    ):
+        response = await client.post("/search", json={"query": "how does our 3/2mm wetsuit price compare?"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "competitive_intel" in data["agent_trace"]
+    assert data["results"][0]["source"] == "competitive-intel"
+    assert data["results"][0]["metadata"]["sources_scraped"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# /intelligence endpoint
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_intelligence_endpoint_exists(client: AsyncClient):
+    """/intelligence must return 200 (stub mode — no API keys set)."""
+    with (
+        patch("mass.graph.settings.brave_api_key", ""),
+        patch("mass.graph.settings.serper_api_key", ""),
+    ):
+        synth_resp = _make_litellm_response("Intelligence synthesis.")
+        with patch("mass.graph.litellm.acompletion", new=AsyncMock(return_value=synth_resp)):
+            response = await client.post("/intelligence", json={"query": "competitor pricing"})
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_intelligence_endpoint_pre_sets_competitive_intent(client: AsyncClient):
+    """/intelligence must always return intent='competitive' without calling the classifier."""
+    with (
+        patch("mass.graph.settings.brave_api_key", ""),
+        patch("mass.graph.settings.serper_api_key", ""),
+    ):
+        synth_resp = _make_litellm_response("Analysis done.")
+        # Only ONE acompletion call expected (synthesize), not two (classify + synthesize)
+        with patch("mass.graph.litellm.acompletion", new=AsyncMock(return_value=synth_resp)):
+            response = await client.post("/intelligence", json={"query": "market check"})
+
+    data = response.json()
+    assert data["intent"] == "competitive"
+    assert "competitive_intel" in data["agent_trace"]
+
+
+@pytest.mark.asyncio
+async def test_intelligence_endpoint_requires_api_key_when_configured(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+):
+    """/intelligence must return 401 when key is set but header is missing."""
+    monkeypatch.setattr("mass.main.settings.mass_api_key", "owner-secret")
+    response = await client.post("/intelligence", json={"query": "pricing check"})
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_intelligence_endpoint_accepts_correct_key(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+):
+    """/intelligence must accept requests with the correct X-Api-Key."""
+    monkeypatch.setattr("mass.main.settings.mass_api_key", "owner-secret")
+    with (
+        patch("mass.graph.settings.brave_api_key", ""),
+        patch("mass.graph.settings.serper_api_key", ""),
+    ):
+        synth_resp = _make_litellm_response("Authenticated analysis.")
+        with patch("mass.graph.litellm.acompletion", new=AsyncMock(return_value=synth_resp)):
+            response = await client.post(
+                "/intelligence",
+                json={"query": "pricing check"},
+                headers={"X-Api-Key": "owner-secret"},
+            )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["intent"] == "competitive"
 

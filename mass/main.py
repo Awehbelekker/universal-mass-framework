@@ -1,13 +1,20 @@
 """MASS FastAPI application entry point.
 
 Exposes:
-  GET  /health  — liveness probe (used by Cloud Run + load balancers)
-  POST /search  — primary intelligence endpoint
+  GET  /health        — liveness probe (used by Cloud Run + load balancers)
+  POST /search        — public customer-facing intelligence endpoint
+  POST /intelligence  — owner-only competitive market intelligence endpoint
 
-The /search handler now delegates to the LangGraph ``StateGraph`` defined
-in ``mass.graph`` (Step 2).  The graph nodes are live; the retrieve and
-synthesize nodes are still stubbed until Steps 3–4 wire in RAGFlow and
-LiteLLM respectively.
+MASS is the shared AI backbone powering:
+  • **Awake** — a surf/outdoor store (your business)
+  • **DIGG**  — a content platform (your wife's business)
+
+/search  is for end-users: natural-language search over the store catalog,
+DIGG content, and live web.
+
+/intelligence is for the owner: real-time competitor price scraping + LLM
+analysis to confirm cost position and competitive moat.  Requires a valid
+X-Api-Key header when MASS_API_KEY is configured.
 """
 
 from __future__ import annotations
@@ -20,8 +27,11 @@ from mass.graph import MASSState, mass_graph
 from mass.models import SearchRequest, SearchResponse, SearchResult
 
 app = FastAPI(
-    title="MASS — Universal Multi-Agent System Search Framework",
-    description="The jQuery of AI — plug-and-play intelligence for any system.",
+    title="MASS — AI Intelligence Layer for Awake & DIGG",
+    description=(
+        "The shared AI backbone powering Awake (surf/outdoor store) and DIGG (content platform). "
+        "Natural-language search for customers; competitive market intelligence for owners."
+    ),
     version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -96,6 +106,66 @@ async def search(
     final_state: MASSState = await mass_graph.ainvoke(initial_state)
 
     # Map raw state dicts to typed Pydantic models for the API response
+    results = [
+        SearchResult(
+            content=r.get("content", ""),
+            source=r.get("source"),
+            score=r.get("score"),
+            metadata=r.get("metadata", {}),
+        )
+        for r in final_state.get("results", [])
+    ]
+
+    return SearchResponse(
+        query=final_state["query"],
+        results=results,
+        synthesis=final_state.get("synthesis"),
+        intent=final_state.get("intent"),
+        agent_trace=final_state.get("agent_trace", []),
+        model=final_state.get("model"),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Owner competitive intelligence endpoint
+# ---------------------------------------------------------------------------
+
+
+@app.post("/intelligence", response_model=SearchResponse, tags=["mass"])
+async def intelligence(
+    request: SearchRequest,
+    x_api_key: str | None = Header(default=None),
+) -> SearchResponse:
+    """Owner-only competitive market intelligence endpoint.
+
+    Scrapes real competitor pages via Jina AI Reader, then uses an LLM to
+    compare pricing and positioning, returning a structured analysis with
+    price position, moat factors, and a recommendation.
+
+    Authentication: requires a valid ``X-Api-Key`` header whenever
+    ``MASS_API_KEY`` is configured.  In local dev with an empty key the
+    endpoint is open.
+
+    Intent is pre-set to ``'competitive'`` so the classifier is bypassed and
+    the graph routes directly to ``competitive_intel_node``.
+    """
+    _verify_api_key(x_api_key)
+
+    initial_state: MASSState = {
+        "query": request.query,
+        "context": request.context,
+        "max_results": request.max_results,
+        "results": [],
+        "synthesis": None,
+        # Pre-set intent → classify_intent_node skips classification and
+        # _route_intent sends the query straight to competitive_intel_node.
+        "intent": "competitive",
+        "model": None,
+        "agent_trace": [],
+    }
+
+    final_state: MASSState = await mass_graph.ainvoke(initial_state)
+
     results = [
         SearchResult(
             content=r.get("content", ""),

@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     brave_api_key: str = ""
     serper_api_key: str = ""
 
+    # Jina AI Reader — used by competitive_intel_node to scrape competitor pages
+    # into LLM-ready markdown. Works without a key (rate-limited free tier);
+    # supply a key for higher rate limits: https://jina.ai/
+    jina_api_key: str = ""
+
     # Observability — wired to Langfuse
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
