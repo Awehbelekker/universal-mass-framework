@@ -1,0 +1,19 @@
+feat: Move 4+5 - Web Search Agent and Action Agent
+
+Move 4: Web Search Agent (web_search_node)
+- Brave Search API as primary live web retrieval source
+- Serper API as automatic fallback when Brave fails or is unconfigured
+- Graceful stub when no API keys present (CI-safe)
+- Results mapped to standard SearchResult shape
+
+Move 5: Action Agent (action_agent_node)
+- LiteLLM function-calling to identify and structure actions from natural language
+- Built-in tool registry: create_booking, send_email, update_record
+- Extensible: add entries to _ACTION_TOOLS without modifying node logic
+- Graceful fallback when LLM raises or returns no tool call
+
+Routing: action_stub -> action_agent, web_stub -> web_search
+Config: added brave_api_key, serper_api_key to Settings
+Tests: expanded from 31 to 37 (6 new tests covering Move 4+5)
+README: full architecture, API reference, env vars, deployment, MCP docs
+

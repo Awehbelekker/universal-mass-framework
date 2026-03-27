@@ -3,11 +3,11 @@
 Implements the MASS search pipeline as a LangGraph ``StateGraph``, following
 the same architectural pattern as the ``deepagents`` framework (nodes → edges
 → compile → invoke).  The graph is a stateful reasoning pipeline that
-processes a search query through three sequential nodes:
+processes a search query through intent classification then specialist nodes:
 
-    receive_query → classify_intent → retrieve → synthesize → END
-                                   ↘ action_stub ↗
-                                   ↘ web_stub   ↗
+    receive_query → classify_intent → retrieve      → synthesize → END
+                                   ↘ action_agent ↗
+                                   ↘ web_search   ↗
 
 Graph topology
 --------------
@@ -195,60 +195,308 @@ def _route_intent(state: MASSState) -> str:
     if intent in ("search", "product", "order"):
         return "retrieve"
     if intent == "action":
-        return "action_stub"
+        return "action_agent"
     # web (and any unknown fallback)
-    return "web_stub"
+    return "web_search"
 
 
 # ---------------------------------------------------------------------------
-# Specialist stub nodes (Move 2 — full implementations come later)
+# Web Search Agent (Move 4)
 # ---------------------------------------------------------------------------
 
+_BRAVE_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
+_SERPER_SEARCH_URL = "https://google.serper.dev/search"
 
-async def action_stub_node(state: MASSState) -> dict[str, Any]:
-    """Placeholder for the Action Agent.
 
-    Will be replaced with a real tool-calling agent that can create/update/
-    delete records, trigger workflows, send emails, etc.
+async def web_search_node(state: MASSState) -> dict[str, Any]:
+    """Live web retrieval agent — Brave Search API with Serper fallback.
+
+    Priority order:
+
+    1. **Brave Search** (``BRAVE_API_KEY``) — privacy-first, no tracking.
+    2. **Serper** (``SERPER_API_KEY``) — Google results via REST.
+    3. **Stub** — safe fallback when neither key is configured (CI / local dev).
+
+    Results are mapped to the standard ``SearchResult`` shape so
+    ``synthesize_node`` can consume them without modification.
     """
-    logger.info("Action agent triggered for query: %r", state["query"])
+    query = state["query"]
+    max_results = min(state.get("max_results", 5), 10)
+
+    # ── Brave Search ──────────────────────────────────────────────────────────
+    if settings.brave_api_key:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    _BRAVE_SEARCH_URL,
+                    headers={
+                        "Accept": "application/json",
+                        "Accept-Encoding": "gzip",
+                        "X-Subscription-Token": settings.brave_api_key,
+                    },
+                    params={"q": query, "count": max_results},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            results = [
+                {
+                    "content": item.get("description") or item.get("title", ""),
+                    "source": item.get("url", "web"),
+                    "score": 1.0,
+                    "metadata": {
+                        "title": item.get("title"),
+                        "url": item.get("url"),
+                        "provider": "brave",
+                    },
+                }
+                for item in data.get("web", {}).get("results", [])
+                if item.get("description") or item.get("title")
+            ]
+            if results:
+                logger.info("Brave Search returned %d results for: %r", len(results), query)
+                return {"results": results, "agent_trace": ["web_search"]}
+        except Exception as exc:
+            logger.warning("Brave Search failed (%s); trying Serper.", exc)
+
+    # ── Serper ────────────────────────────────────────────────────────────────
+    if settings.serper_api_key:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(
+                    _SERPER_SEARCH_URL,
+                    headers={
+                        "X-API-KEY": settings.serper_api_key,
+                        "Content-Type": "application/json",
+                    },
+                    json={"q": query, "num": max_results},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+            results = [
+                {
+                    "content": item.get("snippet", ""),
+                    "source": item.get("link", "web"),
+                    "score": 1.0,
+                    "metadata": {
+                        "title": item.get("title"),
+                        "url": item.get("link"),
+                        "provider": "serper",
+                    },
+                }
+                for item in data.get("organic", [])
+                if item.get("snippet")
+            ]
+            if results:
+                logger.info("Serper returned %d results for: %r", len(results), query)
+                return {"results": results, "agent_trace": ["web_search"]}
+        except Exception as exc:
+            logger.warning("Serper search failed (%s); using stub.", exc)
+
+    # ── Stub fallback (no key or all requests failed) ─────────────────────────
+    logger.info(
+        "Web search stub for query: %r — set BRAVE_API_KEY or SERPER_API_KEY to enable.",
+        query,
+    )
     return {
         "results": [
             {
                 "content": (
-                    f"[ACTION AGENT] Received action request: {state['query']!r}. "
-                    "Full action execution coming in Move 4."
-                ),
-                "source": "action-stub",
-                "score": 1.0,
-                "metadata": {"intent": "action", "mode": "stub"},
-            }
-        ],
-        "agent_trace": ["action_stub"],
-    }
-
-
-async def web_stub_node(state: MASSState) -> dict[str, Any]:
-    """Placeholder for the Web Search Agent.
-
-    Will be replaced with a real web retrieval agent (Brave/Serper API)
-    for queries that need live internet data.
-    """
-    logger.info("Web agent triggered for query: %r", state["query"])
-    return {
-        "results": [
-            {
-                "content": (
-                    f"[WEB AGENT] Live web search for: {state['query']!r}. "
-                    "Real-time web retrieval coming in a future move."
+                    f"[WEB SEARCH] Live search for: {query!r}. "
+                    "Set BRAVE_API_KEY or SERPER_API_KEY to enable real-time web retrieval."
                 ),
                 "source": "web-stub",
                 "score": 1.0,
                 "metadata": {"intent": "web", "mode": "stub"},
             }
         ],
-        "agent_trace": ["web_stub"],
+        "agent_trace": ["web_search"],
     }
+
+
+# ---------------------------------------------------------------------------
+# Action Agent (Move 5)
+# ---------------------------------------------------------------------------
+
+#: Tool registry — add entries here to extend the action agent's capabilities
+#: without modifying node logic.
+_ACTION_TOOLS: list[dict[str, Any]] = [
+    {
+        "type": "function",
+        "function": {
+            "name": "create_booking",
+            "description": "Create a booking or reservation for a service.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "service": {
+                        "type": "string",
+                        "description": "The service to book (e.g. surf lesson, consultation)",
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "Requested date/time — natural language is fine",
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "Any additional notes or requirements",
+                    },
+                },
+                "required": ["service", "date"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "send_email",
+            "description": "Send an email or message to a recipient.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "to": {"type": "string", "description": "Recipient email address or name"},
+                    "subject": {"type": "string", "description": "Email subject line"},
+                    "body": {"type": "string", "description": "Email body content"},
+                },
+                "required": ["to", "subject", "body"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_record",
+            "description": "Update an existing record in the system.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "record_type": {
+                        "type": "string",
+                        "description": "Type of record (e.g. order, customer, product)",
+                    },
+                    "record_id": {
+                        "type": "string",
+                        "description": "Identifier of the record to update",
+                    },
+                    "fields": {
+                        "type": "object",
+                        "description": "Key-value pairs of fields to update",
+                        "additionalProperties": True,
+                    },
+                },
+                "required": ["record_type", "record_id", "fields"],
+            },
+        },
+    },
+]
+
+_ACTION_SYSTEM_PROMPT = """\
+You are MASS Action Agent — an AI that identifies and structures actions to perform.
+
+Given the user's request, call the most appropriate tool to capture action details.
+If no tool matches, do NOT call any tool; instead reply with a plain-text explanation."""
+
+
+async def action_agent_node(state: MASSState) -> dict[str, Any]:
+    """Tool-calling action agent powered by LiteLLM function calling.
+
+    Uses the LLM's native tool-use capability to identify the appropriate
+    action and extract structured parameters from natural language.
+
+    Tool registry (``_ACTION_TOOLS``)::
+
+        create_booking  – book or schedule a service
+        send_email      – compose and send an email
+        update_record   – mutate an existing record
+
+    Add entries to ``_ACTION_TOOLS`` to register new capabilities without
+    modifying this node.
+
+    **Graceful fallback**: if the LLM call fails or the model does not support
+    function calling, returns a descriptive stub result so the graph always
+    reaches ``synthesize_node``.
+    """
+    import json as _json
+
+    query = state["query"]
+    logger.info("Action agent triggered for query: %r", query)
+
+    try:
+        response = await litellm.acompletion(
+            model=state.get("model") or settings.litellm_model,
+            messages=[
+                {"role": "system", "content": _ACTION_SYSTEM_PROMPT},
+                {"role": "user", "content": query},
+            ],
+            tools=_ACTION_TOOLS,
+            tool_choice="auto",
+        )
+        msg = response.choices[0].message
+        tool_calls = getattr(msg, "tool_calls", None) or []
+
+        if tool_calls:
+            call = tool_calls[0]
+            fn_name: str = call.function.name
+            try:
+                fn_args: dict[str, Any] = _json.loads(call.function.arguments)
+            except Exception:
+                fn_args = {}
+
+            content = (
+                f"Action identified: **{fn_name}**\n\n"
+                f"Parameters:\n{_json.dumps(fn_args, indent=2)}\n\n"
+                "(MASS Action Agent has structured the request. "
+                "Wire execution adapters to `_ACTION_TOOLS` to perform real operations.)"
+            )
+            logger.info("Action agent resolved tool=%r args=%r", fn_name, fn_args)
+            return {
+                "results": [
+                    {
+                        "content": content,
+                        "source": "action-agent",
+                        "score": 1.0,
+                        "metadata": {
+                            "intent": "action",
+                            "tool_name": fn_name,
+                            "tool_args": fn_args,
+                        },
+                    }
+                ],
+                "agent_trace": ["action_agent"],
+            }
+
+        # Model replied in plain text (no tool selected)
+        fallback_content = (msg.content or "").strip() or (
+            f"[ACTION AGENT] No matching action tool for: {query!r}. "
+            "Register additional tools in `_ACTION_TOOLS` to expand capabilities."
+        )
+        return {
+            "results": [
+                {
+                    "content": fallback_content,
+                    "source": "action-agent",
+                    "score": 0.5,
+                    "metadata": {"intent": "action", "tool_name": None},
+                }
+            ],
+            "agent_trace": ["action_agent"],
+        }
+
+    except Exception as exc:
+        logger.warning("Action agent LiteLLM call failed (%s); using stub.", exc)
+        return {
+            "results": [
+                {
+                    "content": (
+                        f"[ACTION AGENT] Could not process: {query!r}. "
+                        "Ensure a valid LLM API key is configured."
+                    ),
+                    "source": "action-agent",
+                    "score": 0.0,
+                    "metadata": {"intent": "action", "error": str(exc)},
+                }
+            ],
+            "agent_trace": ["action_agent"],
+        }
 
 
 async def retrieve_node(state: MASSState) -> dict[str, Any]:
@@ -432,21 +680,21 @@ async def synthesize_node(state: MASSState) -> dict[str, Any]:
 def build_graph() -> CompiledStateGraph:
     """Construct and compile the MASS ``StateGraph``.
 
-    Graph topology (Move 2)::
+    Graph topology::
 
         receive_query
               │
         classify_intent
               │
-        ┌─────┴──────────┬──────────┐
-        ▼                ▼          ▼
-      retrieve      action_stub  web_stub
-        │                │          │
-        └────────┬────────┘          │
-                 ▼                   │
-            synthesize  ◄────────────┘
-                 │
-                END
+        ┌─────┴──────────────┬─────────────┐
+        ▼                    ▼             ▼
+      retrieve          action_agent   web_search
+        │                    │             │
+        └───────────┬─────────┘             │
+                    ▼                       │
+               synthesize  ◄────────────────┘
+                    │
+                   END
 
     Conditional edges from ``classify_intent`` use ``_route_intent`` to
     map intent → node name.
@@ -457,8 +705,8 @@ def build_graph() -> CompiledStateGraph:
     builder.add_node("receive_query", receive_query_node)
     builder.add_node("classify_intent", classify_intent_node)
     builder.add_node("retrieve", retrieve_node)
-    builder.add_node("action_stub", action_stub_node)
-    builder.add_node("web_stub", web_stub_node)
+    builder.add_node("action_agent", action_agent_node)
+    builder.add_node("web_search", web_search_node)
     builder.add_node("synthesize", synthesize_node)
 
     # ── Wire edges ───────────────────────────────────────────────────────────
@@ -471,15 +719,15 @@ def build_graph() -> CompiledStateGraph:
         _route_intent,
         {
             "retrieve": "retrieve",
-            "action_stub": "action_stub",
-            "web_stub": "web_stub",
+            "action_agent": "action_agent",
+            "web_search": "web_search",
         },
     )
 
     # All specialist nodes converge on synthesize
     builder.add_edge("retrieve", "synthesize")
-    builder.add_edge("action_stub", "synthesize")
-    builder.add_edge("web_stub", "synthesize")
+    builder.add_edge("action_agent", "synthesize")
+    builder.add_edge("web_search", "synthesize")
     builder.add_edge("synthesize", END)
 
     return builder.compile()

@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_key: str = ""
 
+    # Web Search Agent (Move 4) — Brave is tried first, Serper as fallback.
+    # Leave both empty to use the stub web_search_node (safe for CI / local dev).
+    brave_api_key: str = ""
+    serper_api_key: str = ""
+
     # Observability — wired to Langfuse
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

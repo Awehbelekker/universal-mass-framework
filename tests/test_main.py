@@ -1,9 +1,10 @@
-"""Tests for the MASS FastAPI application (Move 2 — Intent Classifier + Routing).
+"""Tests for the MASS FastAPI application (Moves 1-5).
 
 The /search endpoint delegates to the MASS LangGraph StateGraph:
-    receive_query → classify_intent → retrieve|action_stub|web_stub → synthesize
+    receive_query → classify_intent → retrieve|action_agent|web_search → synthesize
 
 LiteLLM calls are mocked so the test suite runs without API keys.
+HTTP calls (Brave/Serper) are mocked for web search tests.
 
 Run with:  uv run pytest tests/ -v
 """
@@ -370,26 +371,28 @@ async def test_intent_routes_product_to_retrieve(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_intent_routes_action_to_action_stub(client: AsyncClient):
-    """When classify_intent returns 'action', action_stub must run instead of retrieve."""
+async def test_intent_routes_action_to_action_agent(client: AsyncClient):
+    """When classify_intent returns 'action', action_agent must run instead of retrieve."""
     classify_resp = _make_litellm_response("action")
+    # action_agent calls acompletion for tool-calling, then synthesize calls it again
+    action_resp = _make_litellm_response("I will book that for you.")
     synth_resp = _make_litellm_response("Action acknowledged.")
     with patch(
         "mass.graph.litellm.acompletion",
-        new=AsyncMock(side_effect=[classify_resp, synth_resp]),
+        new=AsyncMock(side_effect=[classify_resp, action_resp, synth_resp]),
     ):
         response = await client.post("/search", json={"query": "book a surf lesson for tomorrow"})
     data = response.json()
     assert response.status_code == 200
-    assert "action_stub" in data["agent_trace"]
+    assert "action_agent" in data["agent_trace"]
     assert "retrieve" not in data["agent_trace"]
-    assert "web_stub" not in data["agent_trace"]
+    assert "web_search" not in data["agent_trace"]
     assert data["intent"] == "action"
 
 
 @pytest.mark.asyncio
-async def test_intent_routes_web_to_web_stub(client: AsyncClient):
-    """When classify_intent returns 'web', web_stub must run instead of retrieve."""
+async def test_intent_routes_web_to_web_search(client: AsyncClient):
+    """When classify_intent returns 'web', web_search must run instead of retrieve."""
     classify_resp = _make_litellm_response("web")
     synth_resp = _make_litellm_response("Live web result.")
     with patch(
@@ -399,9 +402,9 @@ async def test_intent_routes_web_to_web_stub(client: AsyncClient):
         response = await client.post("/search", json={"query": "what is today's surf forecast?"})
     data = response.json()
     assert response.status_code == 200
-    assert "web_stub" in data["agent_trace"]
+    assert "web_search" in data["agent_trace"]
     assert "retrieve" not in data["agent_trace"]
-    assert "action_stub" not in data["agent_trace"]
+    assert "action_agent" not in data["agent_trace"]
     assert data["intent"] == "web"
 
 
@@ -436,4 +439,195 @@ async def test_intent_unknown_label_defaults_to_search(client: AsyncClient):
     assert response.status_code == 200
     assert "retrieve" in data["agent_trace"]
     assert data["intent"] == "search"
+
+
+# ---------------------------------------------------------------------------
+# Move 4: Web Search Agent
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_web_search_uses_brave_when_key_configured(client: AsyncClient):
+    """web_search_node must call Brave Search API when BRAVE_API_KEY is set."""
+    classify_resp = _make_litellm_response("web")
+    synth_resp = _make_litellm_response("Brave result synthesis.")
+
+    brave_payload = {
+        "web": {
+            "results": [
+                {"title": "Surf Forecast", "description": "3ft offshore today.", "url": "https://example.com/surf"},
+            ]
+        }
+    }
+    mock_http_resp = MagicMock()
+    mock_http_resp.json.return_value = brave_payload
+    mock_http_resp.raise_for_status = MagicMock()
+
+    mock_async_client = AsyncMock()
+    mock_async_client.__aenter__ = AsyncMock(return_value=mock_async_client)
+    mock_async_client.__aexit__ = AsyncMock(return_value=False)
+    mock_async_client.get = AsyncMock(return_value=mock_http_resp)
+
+    with (
+        patch("mass.graph.litellm.acompletion", new=AsyncMock(side_effect=[classify_resp, synth_resp])),
+        patch("mass.graph.settings.brave_api_key", "test-brave-key"),
+        patch("mass.graph.httpx.AsyncClient", return_value=mock_async_client),
+    ):
+        response = await client.post("/search", json={"query": "surf forecast today"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "web_search" in data["agent_trace"]
+    assert len(data["results"]) >= 1
+    assert data["results"][0]["source"] == "https://example.com/surf"
+    assert data["results"][0]["metadata"]["provider"] == "brave"
+
+
+@pytest.mark.asyncio
+async def test_web_search_falls_back_to_serper(client: AsyncClient):
+    """web_search_node must try Serper when Brave fails."""
+    classify_resp = _make_litellm_response("web")
+    synth_resp = _make_litellm_response("Serper result synthesis.")
+
+    serper_payload = {
+        "organic": [
+            {"title": "Surf Report", "snippet": "Good conditions.", "link": "https://serper.example.com/surf"},
+        ]
+    }
+    mock_serper_resp = MagicMock()
+    mock_serper_resp.json.return_value = serper_payload
+    mock_serper_resp.raise_for_status = MagicMock()
+
+    mock_brave_resp = MagicMock()
+    mock_brave_resp.raise_for_status.side_effect = Exception("Brave 401")
+
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    # First call (GET) = Brave fails; second call (POST) = Serper succeeds
+    mock_client.get = AsyncMock(return_value=mock_brave_resp)
+    mock_client.post = AsyncMock(return_value=mock_serper_resp)
+
+    with (
+        patch("mass.graph.litellm.acompletion", new=AsyncMock(side_effect=[classify_resp, synth_resp])),
+        patch("mass.graph.settings.brave_api_key", "bad-key"),
+        patch("mass.graph.settings.serper_api_key", "test-serper-key"),
+        patch("mass.graph.httpx.AsyncClient", return_value=mock_client),
+    ):
+        response = await client.post("/search", json={"query": "surf conditions"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "web_search" in data["agent_trace"]
+    assert data["results"][0]["metadata"]["provider"] == "serper"
+
+
+@pytest.mark.asyncio
+async def test_web_search_stub_without_api_keys(client: AsyncClient):
+    """web_search_node must return a stub result when no API keys are configured."""
+    classify_resp = _make_litellm_response("web")
+    synth_resp = _make_litellm_response("Stub web synthesis.")
+
+    with (
+        patch("mass.graph.litellm.acompletion", new=AsyncMock(side_effect=[classify_resp, synth_resp])),
+        patch("mass.graph.settings.brave_api_key", ""),
+        patch("mass.graph.settings.serper_api_key", ""),
+    ):
+        response = await client.post("/search", json={"query": "live weather"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "web_search" in data["agent_trace"]
+    assert data["results"][0]["source"] == "web-stub"
+    assert data["results"][0]["metadata"]["mode"] == "stub"
+
+
+# ---------------------------------------------------------------------------
+# Move 5: Action Agent
+# ---------------------------------------------------------------------------
+
+
+def _make_tool_call_response(tool_name: str, arguments: str) -> MagicMock:
+    """Build a mock litellm response that includes a tool_call."""
+    fn = MagicMock()
+    fn.name = tool_name
+    fn.arguments = arguments
+    tool_call = MagicMock()
+    tool_call.function = fn
+    msg = MagicMock()
+    msg.tool_calls = [tool_call]
+    msg.content = None
+    choice = MagicMock()
+    choice.message = msg
+    resp = MagicMock()
+    resp.choices = [choice]
+    return resp
+
+
+@pytest.mark.asyncio
+async def test_action_agent_identifies_booking(client: AsyncClient):
+    """action_agent_node must parse a create_booking tool call and return structured result."""
+    classify_resp = _make_litellm_response("action")
+    action_resp = _make_tool_call_response(
+        "create_booking", '{"service": "surf lesson", "date": "tomorrow 10am"}'
+    )
+    synth_resp = _make_litellm_response("Booking action structured.")
+
+    with patch(
+        "mass.graph.litellm.acompletion",
+        new=AsyncMock(side_effect=[classify_resp, action_resp, synth_resp]),
+    ):
+        response = await client.post("/search", json={"query": "book a surf lesson for tomorrow 10am"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "action_agent" in data["agent_trace"]
+    assert data["intent"] == "action"
+    result = data["results"][0]
+    assert result["source"] == "action-agent"
+    assert result["metadata"]["tool_name"] == "create_booking"
+    assert result["metadata"]["tool_args"]["service"] == "surf lesson"
+
+
+@pytest.mark.asyncio
+async def test_action_agent_no_tool_match_returns_text(client: AsyncClient):
+    """When the LLM returns no tool_calls, action_agent must return the text content."""
+    classify_resp = _make_litellm_response("action")
+    # No tool_calls — model replies in plain text
+    no_tool_resp = _make_litellm_response("I cannot perform that action yet.")
+    # Patch tool_calls to be empty list
+    no_tool_resp.choices[0].message.tool_calls = []
+    synth_resp = _make_litellm_response("Action noted.")
+
+    with patch(
+        "mass.graph.litellm.acompletion",
+        new=AsyncMock(side_effect=[classify_resp, no_tool_resp, synth_resp]),
+    ):
+        response = await client.post("/search", json={"query": "do something unusual"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "action_agent" in data["agent_trace"]
+    assert data["results"][0]["source"] == "action-agent"
+    assert data["results"][0]["metadata"]["tool_name"] is None
+
+
+@pytest.mark.asyncio
+async def test_action_agent_graceful_on_llm_error(client: AsyncClient):
+    """When LiteLLM raises during action_agent, the graph must still reach synthesize."""
+    classify_resp = _make_litellm_response("action")
+    synth_resp = _make_litellm_response("Fallback synthesis.")
+
+    with patch(
+        "mass.graph.litellm.acompletion",
+        new=AsyncMock(side_effect=[classify_resp, Exception("tool call failed"), synth_resp]),
+    ):
+        response = await client.post("/search", json={"query": "trigger an action"})
+
+    data = response.json()
+    assert response.status_code == 200
+    assert "action_agent" in data["agent_trace"]
+    assert "synthesize" in data["agent_trace"]
+    assert data["results"][0]["source"] == "action-agent"
+    assert data["results"][0]["score"] == 0.0
 
