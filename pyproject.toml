@@ -22,7 +22,7 @@ mass-ingest-store = "mass.ingest_store:ingest"
 [project.optional-dependencies]
 # 'verify' pulls the local verified-reasoning package (pip install -e ../verified-reasoning);
 # the verify_action node degrades gracefully if it isn't installed.
-verify = ["verified-reasoning"]
+verify = ["verified-reasoning @ git+https://github.com/Awehbelekker/verified-reasoning.git"]
 dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
