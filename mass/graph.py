@@ -868,6 +868,73 @@ async def synthesize_node(state: MASSState) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Verified-reasoning stage (Step 4 of the VRL port)
+# ---------------------------------------------------------------------------
+
+
+async def verify_action_node(state: MASSState) -> dict[str, Any]:
+    """Independently verify the action_agent's extracted tool call against the tool's OWN contract
+    (deterministic) BEFORE it reaches synthesize.
+
+    The action_agent uses an LLM to extract structured ``tool_args`` from natural language — which
+    can be malformed or incomplete. Voting/extraction alone never catches a confident-but-wrong
+    action. This node wraps the extracted action through ``verified_reasoning`` (a JSON-schema
+    contract check): a failed action is flagged for human review instead of being presented as done.
+    Starts with the deterministic-outcome case (well-formed action parameters).
+
+    Graceful: if ``verified_reasoning`` isn't installed, verification is skipped and the graph still
+    reaches synthesize unchanged.
+    """
+    results = list(state.get("results") or [])
+    if not results:
+        return {"agent_trace": ["verify_action:skip"]}
+
+    res = dict(results[0])
+    meta = dict(res.get("metadata") or {})
+    tool_name = meta.get("tool_name")
+    tool_args = meta.get("tool_args") or {}
+
+    if not tool_name:
+        meta["verified"] = None
+        res["metadata"] = meta
+        return {"results": [res, *results[1:]], "agent_trace": ["verify_action:no-tool"]}
+
+    schema = next((t["function"].get("parameters", {}) for t in _ACTION_TOOLS
+                   if t["function"]["name"] == tool_name), None)
+    if schema is None:
+        meta["verified"] = None
+        res["metadata"] = meta
+        return {"results": [res, *results[1:]], "agent_trace": ["verify_action:unknown-tool"]}
+
+    try:
+        from verified_reasoning import Proposal, ContractVerifier, telemetry
+    except Exception:
+        logger.info("verified_reasoning not installed — skipping action verification")
+        return {"results": results, "agent_trace": ["verify_action:vr-missing"]}
+
+    verifier = ContractVerifier(schema, name=f"contract:{tool_name}")
+    proposal = Proposal(value=tool_args, confidence=float(res.get("score", 1.0)), proposer="action_agent")
+    vr = verifier.verify(proposal, {})
+    try:
+        telemetry.log_run(tool_name, state.get("query", ""), [proposal], proposal, vr, 0, verifier)
+    except Exception:
+        pass
+
+    meta["verified"] = vr.passed
+    meta["verify_detail"] = vr.detail
+    if not vr.passed:
+        meta["escalated"] = True
+        res["score"] = min(float(res.get("score", 1.0)), 0.3)
+        res["content"] = (
+            f"[UNVERIFIED ACTION] `{tool_name}` failed its contract check: {vr.detail}. "
+            "This action needs human review before execution.\n\n" + str(res.get("content", ""))
+        )
+    res["metadata"] = meta
+    logger.info("verify_action tool=%s passed=%s (%s)", tool_name, vr.passed, vr.detail)
+    return {"results": [res, *results[1:]], "agent_trace": ["verify_action"]}
+
+
+# ---------------------------------------------------------------------------
 # Graph factory
 # ---------------------------------------------------------------------------
 
@@ -901,6 +968,7 @@ def build_graph() -> CompiledStateGraph:
     builder.add_node("classify_intent", classify_intent_node)
     builder.add_node("retrieve", retrieve_node)
     builder.add_node("action_agent", action_agent_node)
+    builder.add_node("verify_action", verify_action_node)
     builder.add_node("web_search", web_search_node)
     builder.add_node("competitive_intel", competitive_intel_node)
     builder.add_node("synthesize", synthesize_node)
@@ -921,9 +989,11 @@ def build_graph() -> CompiledStateGraph:
         },
     )
 
-    # All specialist nodes converge on synthesize
+    # All specialist nodes converge on synthesize — action_agent goes via verify_action first
+    # (Step 4: independently verify the extracted action before it's presented as done).
     builder.add_edge("retrieve", "synthesize")
-    builder.add_edge("action_agent", "synthesize")
+    builder.add_edge("action_agent", "verify_action")
+    builder.add_edge("verify_action", "synthesize")
     builder.add_edge("web_search", "synthesize")
     builder.add_edge("competitive_intel", "synthesize")
     builder.add_edge("synthesize", END)
