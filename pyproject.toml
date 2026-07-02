@@ -15,17 +15,14 @@ dependencies = [
     "mcp>=1.26.0",
 ]
 
-[project.optional-dependencies]
-# Independent verification of the action_agent's extracted tool call before synthesize.
-# Local package — install with:  pip install -e ../verified-reasoning
-# The verify_action node degrades gracefully (skips verification) if it isn't installed.
-verify = ["verified-reasoning"]
-
 [project.scripts]
 mass-ingest = "mass.ingest:ingest"
 mass-ingest-store = "mass.ingest_store:ingest"
 
 [project.optional-dependencies]
+# 'verify' pulls the local verified-reasoning package (pip install -e ../verified-reasoning);
+# the verify_action node degrades gracefully if it isn't installed.
+verify = ["verified-reasoning"]
 dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
