@@ -907,14 +907,31 @@ async def verify_action_node(state: MASSState) -> dict[str, Any]:
         return {"results": [res, *results[1:]], "agent_trace": ["verify_action:unknown-tool"]}
 
     try:
-        from verified_reasoning import Proposal, ContractVerifier, telemetry
+        from verified_reasoning import (
+            Proposal, ContractVerifier, CompositeVerifier, LookupVerifier, telemetry,
+        )
     except Exception:
         logger.info("verified_reasoning not installed — skipping action verification")
         return {"results": results, "agent_trace": ["verify_action:vr-missing"]}
 
-    verifier = ContractVerifier(schema, name=f"contract:{tool_name}")
+    # Contract check (well-formed) — always. Lookup check (claim is actually true) — when a
+    # ground-truth source is registered and the action references something we can look up.
+    verifiers = [ContractVerifier(schema, name=f"contract:{tool_name}")]
+    try:
+        from mass.verify_sources import has_sources, lookup_record
+    except Exception:
+        has_sources = None
+    if tool_name == "update_record" and has_sources and has_sources():
+        def _record_exists(ctx):
+            rec = lookup_record(ctx.get("record_type"), ctx.get("record_id"))
+            if rec is None:
+                raise LookupError(f"{ctx.get('record_type')} '{ctx.get('record_id')}' not found")
+            return ctx.get("record_id")   # exists → truth equals the claimed id
+        verifiers.append(LookupVerifier(_record_exists, claim_key="record_id", name="record_exists"))
+
+    verifier = verifiers[0] if len(verifiers) == 1 else CompositeVerifier(verifiers, name="action_checks")
     proposal = Proposal(value=tool_args, confidence=float(res.get("score", 1.0)), proposer="action_agent")
-    vr = verifier.verify(proposal, {})
+    vr = verifier.verify(proposal, tool_args)   # context = the extracted args (for lookups)
     try:
         telemetry.log_run(tool_name, state.get("query", ""), [proposal], proposal, vr, 0, verifier)
     except Exception:
